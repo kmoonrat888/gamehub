@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกมทายศัพท์สัตว์</title>
+<style>
+  :root {
+    --bg1: #b8f0c8;
+    --bg2: #ffe7a8;
+    --card: #ffffff;
+    --ink: #3b2f63;
+    --primary: #ff7a59;
+    --green: #3cc47c;
+    --red: #ff5a6e;
+    --yellow: #ffc93c;
+    --blue: #4d9fff;
+    --purple: #a66cff;
+    --orange: #ff9f1c;
+    --soft: #f1eefb;
+    --shadow: 0 8px 0 rgba(59, 47, 99, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { height: 100%; }
+
+  body {
+    min-height: 100%;
+    font-family: "Segoe UI", "Leelawadee UI", "Tahoma", "Noto Sans Thai", sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .screen {
+    width: 100%;
+    max-width: 560px;
+    background: var(--card);
+    border-radius: 32px;
+    box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.08);
+    padding: 28px 24px;
+    text-align: center;
+    animation: pop 0.35s ease;
+  }
+
+  .hidden { display: none !important; }
+
+  h1 {
+    font-size: clamp(28px, 7vw, 40px);
+    margin-bottom: 2px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    opacity: 0.75;
+    margin-bottom: 22px;
+  }
+
+  .mascot {
+    font-size: 68px;
+    display: inline-block;
+    animation: bounce 1.6s ease-in-out infinite;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.2s;
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
+  }
+  .btn:disabled { cursor: default; }
+
+  /* ---------- หน้าตั้งค่า ---------- */
+  .setting {
+    margin-bottom: 18px;
+  }
+  .setting-label {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: left;
+    margin: 0 4px 10px;
+  }
+  .setting-note {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-top: 8px;
+    min-height: 1em;
+  }
+  .setting-note:empty { display: none; }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .options.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .option {
+    background: var(--soft);
+    color: var(--ink);
+    border: 3px solid transparent;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+    font-size: 17px;
+    padding: 8px 14px;
+    border-radius: 16px;
+  }
+  .options.grid .option {
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .option small {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+  .option.selected {
+    background: #fff4d1;
+    border-color: var(--yellow);
+    animation: pop 0.25s ease;
+  }
+
+  .start-btn {
+    width: 100%;
+    font-size: 26px;
+    padding: 16px;
+    margin-top: 6px;
+    background: var(--green);
+  }
+
+  /* ---------- หน้าเล่นเกม ---------- */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .icon-btn {
+    background: var(--soft);
+    color: var(--ink);
+    font-size: 22px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
+
+  .score {
+    background: #fff4d1;
+    padding: 6px 14px;
+    border-radius: 14px;
+  }
+
+  .progress {
+    height: 14px;
+    background: #eee9fb;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--yellow), var(--primary));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .timers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    min-height: 0;
+    margin-bottom: 8px;
+  }
+  .timer {
+    display: inline-block;
+    font-size: 17px;
+    font-weight: 800;
+    background: #e6f7ee;
+    color: #23955a;
+    padding: 4px 14px;
+    border-radius: 99px;
+  }
+  .timer.total {
+    background: #e8f1ff;
+    color: #2f6fd1;
+  }
+  .timer.low {
+    background: #ffe3e7;
+    color: var(--red);
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .prompt {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .prompt .animal {
+    font-size: clamp(90px, 28vw, 130px);
+    line-height: 1.1;
+    animation: pop 0.4s ease;
+  }
+  /* รูปถ่ายจริง: แสดงทั้งรูป (ไม่ตัดหัวสัตว์ในรูปแนวตั้ง) */
+  .prompt .animal.photo {
+    display: block;
+    width: min(100%, 380px);
+    height: clamp(180px, 52vw, 250px);
+    object-fit: contain;
+    border-radius: 22px;
+    background: var(--soft);
+  }
+  .prompt .word {
+    font-size: clamp(36px, 11vw, 60px);
+    font-weight: 800;
+    letter-spacing: 1px;
+    overflow-wrap: anywhere;
+    animation: pop 0.4s ease;
+  }
+  .prompt .question-text {
+    font-size: 18px;
+    font-weight: 700;
+    opacity: 0.75;
+  }
+  .prompt .thai {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--purple);
+  }
+  .speak-btn {
+    background: var(--blue);
+    font-size: 18px;
+    padding: 6px 16px;
+    border-radius: 14px;
+  }
+
+  .feedback {
+    font-size: 22px;
+    font-weight: 800;
+    min-height: 32px;
+    margin-bottom: 4px;
+  }
+  .feedback.good { color: var(--green); animation: pop 0.3s ease; }
+  .feedback.bad { color: var(--red); animation: pop 0.3s ease; }
+
+  .meaning {
+    font-size: 19px;
+    font-weight: 700;
+    min-height: 28px;
+    margin-bottom: 10px;
+  }
+
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .choice {
+    font-size: clamp(22px, 7vw, 30px);
+    padding: 18px 6px;
+    background: var(--primary);
+    position: relative;
+    overflow-wrap: anywhere;
+  }
+  .choice.long { font-size: clamp(17px, 5vw, 24px); }
+  .choice.pic { padding: 6px; }
+  .choice-pic.photo {
+    display: block;
+    width: 100%;
+    height: clamp(96px, 28vw, 140px);
+    object-fit: cover;
+    object-position: center 35%;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .choice-pic.emoji-pic {
+    font-size: clamp(48px, 15vw, 64px);
+    line-height: 1.2;
+    padding: 4px 0;
+  }
+  .choice.pic .key {
+    z-index: 1;
+    top: 10px;
+    left: 12px;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 1;
+  }
+  .choice.pic.wrong img { opacity: 0.35; }
+
+  .credit {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .choice:nth-child(2) { background: var(--blue); }
+  .choice:nth-child(3) { background: var(--purple); }
+  .choice:nth-child(4) { background: var(--orange); }
+  .choice .key {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 13px;
+    opacity: 0.7;
+  }
+  .choice.correct { background: var(--green) !important; animation: pop 0.35s ease; }
+  .choice.wrong { background: #c9c3d9 !important; animation: shake 0.4s ease; }
+
+  /* สะกดคำ */
+  .slots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .slot {
+    width: 36px;
+    height: 46px;
+    border-bottom: 4px solid var(--ink);
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 44px;
+    text-transform: lowercase;
+  }
+  /* คำยาว (เช่น hippopotamus) ย่อช่องให้อยู่บรรทัดเดียวบนมือถือ */
+  .slots.long { gap: 3px; }
+  .slots.long .slot { width: 22px; font-size: 22px; }
+  .slot.filled { color: var(--green); animation: pop 0.25s ease; }
+  .slot.revealed { color: var(--red); }
+  .tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .tile {
+    width: 54px;
+    height: 58px;
+    font-size: 28px;
+    background: var(--purple);
+  }
+  .tile.used {
+    visibility: hidden;
+  }
+  .tile.wrong { animation: shake 0.4s ease; background: var(--red); }
+
+  /* ---------- หน้าสรุปผล ---------- */
+  .stars {
+    font-size: 60px;
+    margin: 8px 0;
+    letter-spacing: 6px;
+  }
+  .stars span {
+    display: inline-block;
+    animation: pop 0.5s ease backwards;
+  }
+  .stars .off { filter: grayscale(1); opacity: 0.3; }
+
+  .result-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .result-score {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .result-msg {
+    font-size: 19px;
+    margin-bottom: 18px;
+  }
+
+  .review {
+    text-align: left;
+    background: #faf8ff;
+    border-radius: 20px;
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+  .review h2 {
+    font-size: 19px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .review-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px;
+    border-bottom: 1px dashed #e2dcf5;
+  }
+  .review-row:last-child { border-bottom: none; }
+  .review-row .r-pic.photo {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+  .review-row .r-pic.emoji-pic { font-size: 36px; text-align: center; }
+  .review-row .r-word { font-size: 20px; font-weight: 800; }
+  .review-row .r-thai { font-size: 15px; opacity: 0.75; }
+  .review-row .speak-btn { font-size: 16px; padding: 6px 10px; }
+  .review .perfect {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .result-actions {
+    display: grid;
+    gap: 12px;
+  }
+  .result-actions .btn {
+    font-size: 22px;
+    padding: 15px;
+  }
+  .btn-primary { background: var(--primary); }
+  .btn-secondary { background: var(--blue); }
+
+  /* ---------- Confetti ---------- */
+  .confetti {
+    position: fixed;
+    top: -20px;
+    width: 12px;
+    height: 18px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 10;
+    animation: fall linear forwards;
+  }
+
+  /* ---------- Animations ---------- */
+  @keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  @keyframes pulse {
+    50% { transform: scale(1.12); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); }
+  }
+
+  @media (max-width: 400px) {
+    .screen { padding: 22px 16px; border-radius: 24px; }
+    .slot { width: 30px; font-size: 26px; }
+    .tile { width: 48px; height: 54px; font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- หน้าตั้งค่า -->
+  <section id="start-screen" class="screen">
+    <div class="mascot">🐼</div>
+    <h1>เกมทายศัพท์สัตว์</h1>
+    <p class="subtitle">Animal Words — มาเรียนคำศัพท์ภาษาอังกฤษกัน!</p>
+    <div id="settings"></div>
+    <button class="btn start-btn" id="start-btn">▶️ เริ่มเล่น</button>
+  </section>
+
+  <!-- หน้าเล่นเกม -->
+  <section id="game-screen" class="screen hidden">
+    <div class="top-bar">
+      <button class="btn icon-btn" id="home-btn" title="กลับหน้าตั้งค่า">🏠</button>
+      <span id="counter">ข้อ 1/10</span>
+      <span class="score">⭐ <span id="score">0</span></span>
+      <button class="btn icon-btn" id="sound-btn" title="เปิด/ปิดเสียง">🔊</button>
+    </div>
+    <div class="progress"><div class="progress-fill" id="progress"></div></div>
+    <div class="timers">
+      <span class="timer hidden" id="q-timer"></span>
+      <span class="timer total hidden" id="total-timer"></span>
+    </div>
+
+    <div class="prompt" id="prompt"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="meaning" id="meaning"></div>
+
+    <div class="choices" id="choices"></div>
+    <div id="spell" class="hidden">
+      <div class="slots" id="slots"></div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </section>
+
+  <!-- หน้าสรุปผล -->
+  <section id="result-screen" class="screen hidden">
+    <div class="mascot" id="result-mascot">🏆</div>
+    <div class="result-title" id="result-title"></div>
+    <div class="stars" id="stars"></div>
+    <div class="result-score" id="result-score"></div>
+    <p class="result-msg" id="result-msg"></p>
+    <div class="review" id="review"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
+      <button class="btn btn-secondary" id="settings-btn">⚙️ เปลี่ยนการตั้งค่า</button>
+    </div>
+  </section>
+
+<script>
+  // ---------- คำศัพท์ (ใช้ emoji ที่แสดงได้บน Windows 10 ขึ้นไป) ----------
+  const WORDS = [
+    // ง่าย
+    { word: "cat", emoji: "🐱", th: "แมว", level: "easy" },
+    { word: "dog", emoji: "🐶", th: "สุนัข", level: "easy" },
+    { word: "cow", emoji: "🐮", th: "วัว", level: "easy" },
+    { word: "pig", emoji: "🐷", th: "หมู", level: "easy" },
+    { word: "duck", emoji: "🦆", th: "เป็ด", level: "easy" },
+    { word: "fish", emoji: "🐟", th: "ปลา", level: "easy" },
+    { word: "bird", emoji: "🐦", th: "นก", level: "easy" },
+    { word: "chicken", emoji: "🐔", th: "ไก่", level: "easy" },
+    { word: "ant", emoji: "🐜", th: "มด", level: "easy" },
+    { word: "bee", emoji: "🐝", th: "ผึ้ง", level: "easy" },
+    { word: "frog", emoji: "🐸", th: "กบ", level: "easy" },
+    { word: "lion", emoji: "🦁", th: "สิงโต", level: "easy" },
+    { word: "bear", emoji: "🐻", th: "หมี", level: "easy" },
+    { word: "fox", emoji: "🦊", th: "สุนัขจิ้งจอก", level: "easy" },
+    { word: "goat", emoji: "🐐", th: "แพะ", level: "easy" },
+    { word: "sheep", emoji: "🐑", th: "แกะ", level: "easy" },
+    { word: "horse", emoji: "🐴", th: "ม้า", level: "easy" },
+    { word: "mouse", emoji: "🐭", th: "หนู", level: "easy" },
+    { word: "rabbit", emoji: "🐰", th: "กระต่าย", level: "easy" },
+    { word: "monkey", emoji: "🐵", th: "ลิง", level: "easy" },
+    { word: "tiger", emoji: "🐯", th: "เสือ", level: "easy" },
+    { word: "owl", emoji: "🦉", th: "นกฮูก", level: "easy" },
+    { word: "bat", emoji: "🦇", th: "ค้างคาว", level: "easy" },
+    { word: "snake", emoji: "🐍", th: "งู", level: "easy" },
+    // ปานกลาง
+    { word: "elephant", emoji: "🐘", th: "ช้าง", level: "medium" },
+    { word: "giraffe", emoji: "🦒", th: "ยีราฟ", level: "medium" },
+    { word: "zebra", emoji: "🦓", th: "ม้าลาย", level: "medium" },
+    { word: "panda", emoji: "🐼", th: "แพนด้า", level: "medium" },
+    { word: "koala", emoji: "🐨", th: "โคอาลา", level: "medium" },
+    { word: "camel", emoji: "🐫", th: "อูฐ", level: "medium" },
+    { word: "turtle", emoji: "🐢", th: "เต่า", level: "medium" },
+    { word: "whale", emoji: "🐳", th: "ปลาวาฬ", level: "medium" },
+    { word: "dolphin", emoji: "🐬", th: "โลมา", level: "medium" },
+    { word: "shark", emoji: "🦈", th: "ฉลาม", level: "medium" },
+    { word: "octopus", emoji: "🐙", th: "ปลาหมึกยักษ์", level: "medium" },
+    { word: "crab", emoji: "🦀", th: "ปู", level: "medium" },
+    { word: "snail", emoji: "🐌", th: "หอยทาก", level: "medium" },
+    { word: "spider", emoji: "🕷️", th: "แมงมุม", level: "medium" },
+    { word: "butterfly", emoji: "🦋", th: "ผีเสื้อ", level: "medium" },
+    { word: "penguin", emoji: "🐧", th: "เพนกวิน", level: "medium" },
+    { word: "eagle", emoji: "🦅", th: "นกอินทรี", level: "medium" },
+    { word: "wolf", emoji: "🐺", th: "หมาป่า", level: "medium" },
+    { word: "deer", emoji: "🦌", th: "กวาง", level: "medium" },
+    { word: "rooster", emoji: "🐓", th: "ไก่ตัวผู้", level: "medium" },
+    { word: "squirrel", emoji: "🐿️", th: "กระรอก", level: "medium" },
+    { word: "hedgehog", emoji: "🦔", th: "เม่นแคระ", level: "medium" },
+    { word: "lizard", emoji: "🦎", th: "กิ้งก่า", level: "medium" },
+    { word: "shrimp", emoji: "🦐", th: "กุ้ง", level: "medium" },
+    // ยาก
+    { word: "hippopotamus", emoji: "🦛", th: "ฮิปโปโปเตมัส", level: "hard" },
+    { word: "rhinoceros", emoji: "🦏", th: "แรด", level: "hard" },
+    { word: "crocodile", emoji: "🐊", th: "จระเข้", level: "hard" },
+    { word: "kangaroo", emoji: "🦘", th: "จิงโจ้", level: "hard" },
+    { word: "gorilla", emoji: "🦍", th: "กอริลลา", level: "hard" },
+    { word: "peacock", emoji: "🦚", th: "นกยูง", level: "hard" },
+    { word: "parrot", emoji: "🦜", th: "นกแก้ว", level: "hard" },
+    { word: "swan", emoji: "🦢", th: "หงส์", level: "hard" },
+    { word: "llama", emoji: "🦙", th: "ลามะ", level: "hard" },
+    { word: "raccoon", emoji: "🦝", th: "แรคคูน", level: "hard" },
+    { word: "lobster", emoji: "🦞", th: "กุ้งมังกร", level: "hard" },
+    { word: "mosquito", emoji: "🦟", th: "ยุง", level: "hard" },
+    { word: "scorpion", emoji: "🦂", th: "แมงป่อง", level: "hard" },
+    { word: "caterpillar", emoji: "🐛", th: "หนอนผีเสื้อ", level: "hard" },
+    { word: "ladybug", emoji: "🐞", th: "เต่าทอง", level: "hard" },
+    { word: "squid", emoji: "🦑", th: "ปลาหมึก", level: "hard" },
+    { word: "boar", emoji: "🐗", th: "หมูป่า", level: "hard" },
+    { word: "cricket", emoji: "🦗", th: "จิ้งหรีด", level: "hard" },
+    { word: "turkey", emoji: "🦃", th: "ไก่งวง", level: "hard" },
+    { word: "leopard", emoji: "🐆", th: "เสือดาว", level: "hard" },
+    { word: "buffalo", emoji: "🐃", th: "ควาย", level: "hard" },
+    { word: "dove", emoji: "🕊️", th: "นกพิราบ", level: "hard" },
+  ];
+
+  // ---------- รูปถ่ายสัตว์จริงจาก Wikimedia Commons ----------
+  // เก็บเป็น path ของไฟล์บน Commons ("a/ab/ชื่อไฟล์") แล้วขอภาพย่อกว้าง 500px
+  // ถ้าโหลดไม่ได้ (เช่น ไม่มีอินเทอร์เน็ต) จะแสดง emoji แทน
+  const THUMB_BASE = "https://thumb.wikimedia.org/wikipedia/commons/thumb";
+  const PHOTOS = {
+    cat: "2/25/Siam_lilacpoint.jpg",
+    dog: "7/7a/Huskiesatrest.jpg",
+    cow: "8/8c/Cow_%28Fleckvieh_breed%29_Oeschinensee_Slaunger_2009-07-07.jpg",
+    pig: "3/3e/Pig_farm_Vampula_1.jpg",
+    duck: "b/bf/Anas_platyrhynchos_male_female_quadrat.jpg",
+    fish: "6/65/Gold_fish1.jpg",
+    bird: "9/9b/House_sparrow_male_in_Prospect_Park_%2853532%29.jpg",
+    chicken: "8/84/Male_and_female_chicken_sitting_together.jpg",
+    ant: "d/db/Red_Ant_-_March_2025.jpg",
+    bee: "4/4d/Apis_mellifera_Western_honey_bee.jpg",
+    frog: "f/f5/Red-eyed_Leaf_Frog_%2849661076226%29.jpg",
+    lion: "a/a6/020_The_lion_king_Snyggve_in_the_Serengeti_National_Park_Photo_by_Giles_Laurent.jpg",
+    bear: "7/71/2010-kodiak-bear-1.jpg",
+    fox: "d/d2/Portrait_of_a_red_fox_in_Rautas_fj%C3%A4llurskog_%28cropped%29.jpg",
+    goat: "b/b2/Hausziege_04.jpg",
+    sheep: "2/2c/Flock_of_sheep.jpg",
+    horse: "d/de/Nokota_Horses_cropped.jpg",
+    mouse: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Mouse_white_background.jpg", // ภาพต้นฉบับเล็ก ใช้ไฟล์จริงเลย
+    rabbit: "5/5f/Oryctolagus_cuniculus_-_euqirneto_-_419737670_%28cropped%29.jpeg",
+    monkey: "d/d6/Rhesus_macaque_%28Macaca_mulatta_mulatta%29%2C_male%2C_Gokarna.jpg",
+    tiger: "b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg",
+    owl: "9/9e/American_Barn_Owl_%28Tyto_furcata_guatemalae%29%2C_Orange_Walk.jpg",
+    bat: "7/77/Big-eared-townsend-fledermaus.jpg",
+    snake: "6/60/Trimeresurus_sabahi_fucatus%2C_Banded_pit_viper_-_Takua_Pa_District%2C_Phang-nga_Province_%2846710893582%29.jpg",
+    elephant: "3/37/African_Bush_Elephant.jpg",
+    giraffe: "9/9e/Giraffe_Mikumi_National_Park.jpg",
+    zebra: "4/45/Equus_quagga_burchellii_-_Etosha%2C_2014.jpg",
+    panda: "0/0f/Grosser_Panda.JPG",
+    koala: "4/49/Koala_climbing_tree.jpg",
+    camel: "5/5e/Camelus_bactrianus_%2855026866188%29.jpg",
+    turtle: "9/96/RedEaredSlider05.jpg",
+    whale: "d/d7/Humpback_whale_breaching_off_Cabo_San_Lucas.jpg",
+    dolphin: "b/bc/Tursiops_truncatus_01-cropped.jpg",
+    shark: "5/56/White_shark.jpg",
+    octopus: "0/0b/Enteroctopus_dolfeini.jpg",
+    crab: "7/71/Cancer_pagurus.jpg",
+    snail: "c/cc/Snail.jpg",
+    spider: "f/f3/Araneus_diadematus_%28Clerck%2C_1757%29.JPG",
+    butterfly: "3/3d/Fesoj_-_Papilio_machaon_%28by%29.jpg",
+    penguin: "a/a3/Aptenodytes_forsteri_-Snow_Hill_Island%2C_Antarctica_-adults_and_juvenile-8.jpg",
+    eagle: "d/db/Bald_eagle_about_to_fly_in_Alaska_%282016%29.jpg",
+    wolf: "6/68/Eurasian_wolf_2.jpg",
+    deer: "b/b7/White-tailed_deer.jpg",
+    rooster: "2/23/Red_jungle_fowl.png",
+    squirrel: "1/15/EasternGraySquirrel_GAm.jpg",
+    hedgehog: "7/72/Igel.JPG",
+    lizard: "0/0a/Hemidactylus_platyurus_%28Flat-tailed_House_Gecko%29_on_white_background%2C_focus_stacking.jpg",
+    shrimp: "2/2e/CSIRO_ScienceImage_2992_The_Giant_Tiger_Prawn.jpg",
+    hippopotamus: "f/f2/Portrait_Hippopotamus_in_the_water.jpg",
+    rhinoceros: "2/28/109_Male_White_rhinoceros_walking_in_the_Kalahari_Desert_of_Namibia_Photo_by_Giles_Laurent.jpg",
+    crocodile: "8/81/NileCrocodile.jpg",
+    kangaroo: "f/f1/Red_kangaroo_-_melbourne_zoo.jpg",
+    gorilla: "5/50/Male_gorilla_in_SF_zoo.jpg",
+    peacock: "7/7f/Peacock_on_tree_%2852077240794%29.jpg",
+    parrot: "4/47/Scarlet_macaw_%28Ara_macao_cyanopterus%29_Copan.jpg",
+    swan: "a/a2/CygneVaires.jpg",
+    llama: "f/f7/Llamas%2C_Vernagt-Stausee%2C_Italy.jpg",
+    raccoon: "3/3e/Raccoon_in_Central_Park_%2835264%29.jpg",
+    lobster: "d/d5/Nur01521_-_Flickr_-_NOAA_Photo_Library.jpg",
+    mosquito: "d/d0/Aedes_aegypti.jpg",
+    scorpion: "f/fe/Scorpion_Photograph_By_Shantanu_Kuveskar.jpg",
+    caterpillar: "f/f3/Chenille_de_Grand_porte_queue_%28macaon%29.jpg",
+    ladybug: "0/08/7-Spotted-Ladybug-Coccinella-septempunctata-sq1.jpg",
+    squid: "e/e1/Sepioteuthis_sepioidea_%28Caribbean_Reef_Squid%29.jpg",
+    boar: "d/d2/Wildschwein%2C_N%C3%A4he_Pulverstampftor_%28cropped%29.jpg",
+    cricket: "1/10/Gryllus_campestris_MHNT.jpg",
+    turkey: "b/bc/20260428_tom_wild_turkey_matthaei_botanical_gardens_PD08952.jpg",
+    leopard: "7/70/African_leopard_male_%28cropped%29.jpg",
+    buffalo: "b/bc/Water_buffalo_at_Rinca.jpg",
+    dove: "1/10/Columba_livia_%28Rock_Dove%2C_wild%29%2C_Duncansby_Head%2C_Caithness%2C_Scotland_1.jpg",
+  };
+
+  const photoFile = (word) => PHOTOS[word].split("/").pop();
+
+  function photoUrl(word) {
+    const path = PHOTOS[word];
+    return path.startsWith("http") ? path : `${THUMB_BASE}/${path}/500px-${photoFile(word)}`;
+  }
+
+  // หน้าไฟล์บน Commons (มีชื่อผู้ถ่ายและสัญญาอนุญาตของภาพ)
+  const photoCredit = (word) => `https://commons.wikimedia.org/wiki/File:${photoFile(word)}`;
+
+  // ---------- ตัวเลือกในหน้าตั้งค่า ----------
+  const SETTINGS = [
+    {
+      key: "level", label: "1. ระดับคำศัพท์", grid: true,
+      options: [
+        { value: "easy", label: "🐣 ง่าย" },
+        { value: "medium", label: "🐰 ปานกลาง" },
+        { value: "hard", label: "🦊 ยาก" },
+        { value: "all", label: "🌈 ทุกระดับ" },
+      ],
+    },
+    {
+      key: "qtype", label: "2. รูปแบบคำถาม", grid: true,
+      options: [
+        { value: "pic", label: "🖼️ ดูรูป", sub: "เลือกคำศัพท์" },
+        { value: "word", label: "🔤 ดูคำศัพท์", sub: "เลือกรูป" },
+        { value: "spell", label: "🧩 สะกดคำ", sub: "เรียงตัวอักษร" },
+        { value: "mix", label: "🎲 คละแบบ", sub: "สุ่มทั้ง 3 แบบ" },
+      ],
+    },
+    {
+      key: "pics", label: "3. รูปภาพ", grid: true,
+      options: [
+        { value: "photo", label: "📷 รูปถ่ายจริง", sub: "ต้องต่ออินเทอร์เน็ต" },
+        { value: "emoji", label: "😺 รูปการ์ตูน", sub: "เล่นได้ไม่ต้องใช้เน็ต" },
+      ],
+    },
+    {
+      key: "count", label: "4. จำนวนข้อ",
+      options: [5, 10, 15, 20, 30].map((n) => ({ value: n, label: `${n} ข้อ` }))
+        .concat({ value: 0, label: "ทั้งหมด" }),
+    },
+    {
+      key: "qTime", label: "5. เวลาต่อข้อ",
+      options: [{ value: 0, label: "ไม่จำกัด" }]
+        .concat([5, 10, 15, 20, 30].map((s) => ({ value: s, label: `${s} วิ` }))),
+    },
+    {
+      key: "totalTime", label: "6. เวลารวมทั้งเกม",
+      options: [{ value: 0, label: "ไม่จำกัด" }]
+        .concat([1, 2, 3, 5, 10].map((m) => ({ value: m * 60, label: `${m} นาที` }))),
+    },
+  ];
+
+  const SETTINGS_KEY = "animal-words-settings";
+  const PRAISES = ["เก่งมาก! 🎉", "ยอดเยี่ยม! 🌟", "ถูกต้อง! 👏", "Great job! 🚀", "Excellent! 💯"];
+  const TRY_AGAIN = ["ลองใหม่นะ 💪", "เกือบแล้ว! ลองอีกที 🤔", "ไม่เป็นไร ลองใหม่ 😊"];
+
+  const state = {
+    settings: { level: "easy", qtype: "pic", pics: "photo", count: 10, qTime: 0, totalTime: 0 },
+    soundOn: true,
+    questions: [],
+    index: 0,
+    score: 0,
+    missed: [],
+    firstTry: true,
+    locked: false,
+    round: 0,
+    spellPos: 0,
+    timerId: null,
+    qEnd: null,        // เวลาหมดของข้อปัจจุบัน (ms) หรือ null ถ้าไม่จับเวลา
+    totalEnd: null,    // เวลาหมดของทั้งเกม (ms) ขณะกำลังนับ
+    totalLeft: null,   // เวลารวมที่เหลือ (ms) ขณะหยุดนับชั่วคราวระหว่างเฉลย
+    lastQSec: null,
+    lastTotalSec: null,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const screens = {
+    start: $("start-screen"),
+    game: $("game-screen"),
+    result: $("result-screen"),
+  };
+
+  function showScreen(name) {
+    Object.values(screens).forEach((s) => s.classList.add("hidden"));
+    screens[name].classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  const wordsForLevel = (level) => WORDS.filter((w) => level === "all" || w.level === level);
+
+  // ---------- เสียง ----------
+  let audioCtx = null;
+
+  function playTone(freq, duration, delay = 0, type = "sine") {
+    if (!state.soundOn) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + duration + 0.05);
+    } catch (e) {
+      // เบราว์เซอร์ไม่รองรับเสียง — เล่นต่อได้ตามปกติ
+    }
+  }
+
+  const sounds = {
+    correct() { playTone(660, 0.15); playTone(880, 0.25, 0.12); },
+    wrong()   { playTone(220, 0.3, 0, "triangle"); },
+    letter()  { playTone(990, 0.08); },
+    tick()    { playTone(1200, 0.06, 0, "square"); },
+    finish()  { [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.3, i * 0.15)); },
+  };
+
+  // อ่านออกเสียงคำศัพท์ภาษาอังกฤษด้วยเสียงของเบราว์เซอร์
+  function speak(word) {
+    if (!state.soundOn || !("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(word);
+      utter.lang = "en-US";
+      utter.rate = 0.85;
+      const voice = speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
+      if (voice) utter.voice = voice;
+      speechSynthesis.speak(utter);
+    } catch (e) {}
+  }
+
+  // รูปสัตว์: รูปถ่ายจริง หรือ emoji (ตามการตั้งค่า / ตอนโหลดรูปไม่ได้)
+  function picture(item, className) {
+    const emoji = () => el("div", `${className} emoji-pic`, item.emoji);
+    if (state.settings.pics !== "photo") return emoji();
+    const img = el("img", `${className} photo`);
+    img.alt = "รูปสัตว์"; // ไม่ใส่ชื่อสัตว์ จะได้ไม่เฉลย
+    img.draggable = false;
+    let retried = false;
+    img.addEventListener("error", () => {
+      if (retried) return img.replaceWith(emoji());
+      retried = true; // ลองโหลดใหม่อีกครั้งก่อน (เผื่อเน็ตสะดุด)
+      setTimeout(() => { img.src = `${photoUrl(item.word)}?retry=1`; }, 1000);
+    });
+    img.src = photoUrl(item.word);
+    return img;
+  }
+
+  // โหลดรูปของข้อถัด ๆ ไปไว้ล่วงหน้า (ทีละไม่กี่รูป ไม่ยิงพร้อมกันทั้งหมด)
+  function preloadUpcoming() {
+    if (state.settings.pics !== "photo") return;
+    state.questions.slice(state.index + 1, state.index + 4).forEach((q) => {
+      new Image().src = photoUrl(q.item.word);
+    });
+  }
+
+  function speakButton(word) {
+    const btn = el("button", "btn speak-btn", "🔊 ฟังเสียง");
+    btn.addEventListener("click", () => speak(word));
+    return btn;
+  }
+
+  // ---------- หน้าตั้งค่า ----------
+  function renderSettings() {
+    const box = $("settings");
+    box.innerHTML = "";
+    SETTINGS.forEach((setting) => {
+      const section = el("div", "setting");
+      section.append(el("p", "setting-label", setting.label));
+      const options = el("div", "options" + (setting.grid ? " grid" : ""));
+      setting.options.forEach((opt) => {
+        const btn = el("button", "btn option" + (state.settings[setting.key] === opt.value ? " selected" : ""));
+        btn.append(el("span", "", opt.label));
+        if (opt.sub) btn.append(el("small", "", opt.sub));
+        btn.addEventListener("click", () => {
+          state.settings[setting.key] = opt.value;
+          saveSettings();
+          renderSettings();
+        });
+        options.append(btn);
+      });
+      section.append(options);
+      if (setting.key === "count") section.append(el("p", "setting-note", countNote()));
+      if (setting.key === "totalTime") section.append(el("p", "setting-note", timeNote()));
+      box.append(section);
+    });
+  }
+
+  function countNote() {
+    const available = wordsForLevel(state.settings.level).length;
+    const { count } = state.settings;
+    if (count === 0) return `ระดับนี้มีทั้งหมด ${available} คำ`;
+    if (count > available) return `ระดับนี้มีแค่ ${available} คำ จะเล่น ${available} ข้อ`;
+    return "";
+  }
+
+  function timeNote() {
+    const { qTime, totalTime } = state.settings;
+    if (qTime && totalTime) return "จับเวลาทั้งต่อข้อและรวมทั้งเกม — เวลาหมดอย่างใดอย่างหนึ่งก่อนก็นับ";
+    return "";
+  }
+
+  function saveSettings() {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch (e) {}
+  }
+
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      SETTINGS.forEach(({ key, options }) => {
+        if (options.some((o) => o.value === saved[key])) state.settings[key] = saved[key];
+      });
+    } catch (e) {}
+  }
+
+  // ---------- เริ่มเกม ----------
+  function startGame() {
+    const { level, qtype, count } = state.settings;
+    const pool = shuffle([...wordsForLevel(level)]);
+    const n = count === 0 ? pool.length : Math.min(count, pool.length);
+    state.questions = pool.slice(0, n).map((item) => ({
+      item,
+      type: qtype === "mix" ? pick(["pic", "word", "spell"]) : qtype,
+    }));
+    state.index = 0;
+    state.score = 0;
+    state.missed = [];
+    state.round++;
+    $("score").textContent = "0";
+
+    stopTimers();
+    state.totalLeft = state.settings.totalTime ? state.settings.totalTime * 1000 : null;
+    $("q-timer").classList.toggle("hidden", !state.settings.qTime);
+    $("total-timer").classList.toggle("hidden", !state.settings.totalTime);
+    state.timerId = setInterval(tick, 200);
+
+    showScreen("game");
+    renderQuestion();
+  }
+
+  // ---------- แสดงคำถาม ----------
+  function renderQuestion() {
+    const { item, type } = state.questions[state.index];
+    state.firstTry = true;
+    state.locked = false;
+
+    $("counter").textContent = `ข้อ ${state.index + 1}/${state.questions.length}`;
+    $("progress").style.width = `${(state.index / state.questions.length) * 100}%`;
+    $("feedback").textContent = "";
+    $("feedback").className = "feedback";
+    $("meaning").textContent = "";
+
+    const prompt = $("prompt");
+    prompt.innerHTML = "";
+    $("choices").innerHTML = "";
+    $("choices").classList.toggle("hidden", type === "spell");
+    $("spell").classList.toggle("hidden", type !== "spell");
+
+    if (type === "pic") {
+      prompt.append(picture(item, "animal"), el("div", "question-text", "สัตว์ตัวนี้ภาษาอังกฤษคืออะไร?"));
+      renderChoices(item, false);
+    } else if (type === "word") {
+      prompt.append(el("div", "word", item.word), el("div", "question-text", "คำนี้คือสัตว์ตัวไหน?"), speakButton(item.word));
+      renderChoices(item, true);
+      speak(item.word);
+    } else {
+      prompt.append(picture(item, "animal"), el("div", "thai", item.th), speakButton(item.word));
+      renderSpell(item);
+    }
+    preloadUpcoming();
+
+    // เริ่มนับเวลาข้อนี้ และนับเวลารวมต่อ (หยุดไว้ระหว่างเฉลยข้อก่อน)
+    state.qEnd = state.settings.qTime ? Date.now() + state.settings.qTime * 1000 : null;
+    state.lastQSec = null;
+    resumeTotal();
+    tick();
+  }
+
+  // asPicture: ตัวเลือกเป็นรูป (โหมดดูคำ ทายรูป) หรือเป็นคำศัพท์
+  function renderChoices(item, asPicture) {
+    // ตัวเลือกหลอกมาจากระดับเดียวกันก่อน ถ้าไม่พอค่อยเอาจากระดับอื่น
+    const sameLevel = shuffle(WORDS.filter((w) => w !== item && w.level === item.level));
+    const others = shuffle(WORDS.filter((w) => w !== item && w.level !== item.level));
+    const options = shuffle([item, ...sameLevel.concat(others).slice(0, 3)]);
+
+    options.forEach((w, i) => {
+      const btn = el("button", "btn choice" + (asPicture ? " pic" : w.word.length > 8 ? " long" : ""));
+      btn.append(el("span", "key", String(i + 1)), asPicture ? picture(w, "choice-pic") : document.createTextNode(w.word));
+      btn.dataset.word = w.word;
+      btn.addEventListener("click", () => checkChoice(btn, w === item));
+      $("choices").append(btn);
+    });
+  }
+
+  function renderSpell(item) {
+    state.spellPos = 0;
+    const slots = $("slots");
+    const tiles = $("tiles");
+    slots.innerHTML = "";
+    slots.classList.toggle("long", item.word.length > 8);
+    tiles.innerHTML = "";
+    [...item.word].forEach(() => slots.append(el("span", "slot")));
+
+    // สลับตัวอักษร (พยายามไม่ให้ออกมาเรียงเหมือนคำจริง)
+    let letters = [...item.word];
+    for (let i = 0; i < 10; i++) {
+      shuffle(letters);
+      if (letters.join("") !== item.word) break;
+    }
+    letters.forEach((letter) => {
+      const btn = el("button", "btn tile", letter);
+      btn.dataset.letter = letter;
+      btn.addEventListener("click", () => tapTile(btn));
+      tiles.append(btn);
+    });
+  }
+
+  function setFeedback(text, kind) {
+    const fb = $("feedback");
+    fb.className = "feedback";
+    void fb.offsetWidth; // รีสตาร์ท animation
+    fb.textContent = text;
+    fb.className = `feedback ${kind}`;
+  }
+
+  function showMeaning(item) {
+    const box = $("meaning");
+    box.textContent = `${item.emoji} ${item.word} = ${item.th}`;
+    if (state.settings.pics === "photo") box.append(" ", creditLink(item));
+  }
+
+  function creditLink(item) {
+    const link = el("a", "credit", "📷 ที่มาภาพ");
+    link.href = photoCredit(item.word);
+    link.target = "_blank";
+    link.rel = "noopener";
+    return link;
+  }
+
+  // ---------- ตรวจคำตอบ ----------
+  function checkChoice(btn, isCorrect) {
+    if (state.locked || btn.disabled) return;
+    if (isCorrect) {
+      btn.classList.add("correct");
+      document.querySelectorAll(".choice").forEach((b) => (b.disabled = true));
+      answeredCorrectly();
+    } else {
+      state.firstTry = false;
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      setFeedback(pick(TRY_AGAIN), "bad");
+      sounds.wrong();
+    }
+  }
+
+  function tapTile(btn) {
+    if (state.locked || btn.disabled) return;
+    const { item } = state.questions[state.index];
+    if (btn.dataset.letter === item.word[state.spellPos]) {
+      btn.disabled = true;
+      btn.classList.add("used");
+      const slot = $("slots").children[state.spellPos];
+      slot.textContent = btn.dataset.letter;
+      slot.classList.add("filled");
+      state.spellPos++;
+      if (state.spellPos === item.word.length) answeredCorrectly();
+      else sounds.letter();
+    } else {
+      wrongLetter(btn);
+    }
+  }
+
+  function wrongLetter(btn) {
+    state.firstTry = false;
+    if (btn) {
+      btn.classList.remove("wrong");
+      void btn.offsetWidth; // รีสตาร์ท animation สั่น
+      btn.classList.add("wrong");
+      setTimeout(() => btn.classList.remove("wrong"), 400);
+    }
+    setFeedback("ยังไม่ใช่ตัวนี้ ลองตัวอื่นนะ 🤔", "bad");
+    sounds.wrong();
+  }
+
+  function answeredCorrectly() {
+    const { item } = state.questions[state.index];
+    state.locked = true;
+    state.qEnd = null;
+    pauseTotal();
+    if (state.firstTry) {
+      state.score++;
+      $("score").textContent = state.score;
+    } else {
+      state.missed.push(item);
+    }
+    setFeedback(pick(PRAISES), "good");
+    showMeaning(item);
+    sounds.correct();
+    setTimeout(() => speak(item.word), 300);
+    goNext(1600);
+  }
+
+  // หมดเวลาข้อนี้: เฉลย ไม่ได้คะแนน แล้วไปข้อถัดไป
+  function questionTimeUp() {
+    const { item, type } = state.questions[state.index];
+    state.locked = true;
+    pauseTotal();
+    state.missed.push(item);
+
+    if (type === "spell") {
+      [...$("slots").children].forEach((slot, i) => {
+        if (!slot.textContent) {
+          slot.textContent = item.word[i];
+          slot.classList.add("revealed");
+        }
+      });
+      document.querySelectorAll(".tile").forEach((t) => (t.disabled = true));
+    } else {
+      document.querySelectorAll(".choice").forEach((b) => {
+        b.disabled = true;
+        if (b.dataset.word === item.word) b.classList.add("correct");
+      });
+    }
+    setFeedback("⏰ หมดเวลา!", "bad");
+    showMeaning(item);
+    sounds.wrong();
+    setTimeout(() => speak(item.word), 300);
+    goNext(2400);
+  }
+
+  function goNext(delay) {
+    const round = state.round;
+    setTimeout(() => {
+      if (round !== state.round) return; // ออกจากเกมหรือหมดเวลารวมไปแล้ว
+      state.index++;
+      if (state.index >= state.questions.length) endGame(false);
+      else renderQuestion();
+    }, delay);
+  }
+
+  // ---------- จับเวลา ----------
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s} วิ`;
+  }
+
+  function pauseTotal() {
+    if (state.totalEnd === null) return;
+    state.totalLeft = Math.max(0, state.totalEnd - Date.now());
+    state.totalEnd = null;
+  }
+
+  function resumeTotal() {
+    if (state.totalLeft === null) return;
+    state.totalEnd = Date.now() + state.totalLeft;
+    state.totalLeft = null;
+  }
+
+  function stopTimers() {
+    clearInterval(state.timerId);
+    state.timerId = null;
+    state.qEnd = null;
+    state.totalEnd = null;
+    state.totalLeft = null;
+    state.lastQSec = null;
+    state.lastTotalSec = null;
+    $("q-timer").classList.remove("low");
+    $("total-timer").classList.remove("low");
+  }
+
+  function tick() {
+    const now = Date.now();
+
+    if (state.qEnd !== null) {
+      const ms = Math.max(0, state.qEnd - now);
+      const sec = Math.ceil(ms / 1000);
+      $("q-timer").textContent = `⏳ ข้อนี้ ${sec} วิ`;
+      $("q-timer").classList.toggle("low", sec <= 3);
+      if (sec !== state.lastQSec) {
+        state.lastQSec = sec;
+        if (sec > 0 && sec <= 3) sounds.tick();
+      }
+      if (ms === 0) {
+        state.qEnd = null;
+        questionTimeUp();
+      }
+    } else if (state.settings.qTime) {
+      $("q-timer").classList.remove("low");
+    }
+
+    const totalMs = state.totalEnd !== null ? Math.max(0, state.totalEnd - now) : state.totalLeft;
+    if (totalMs !== null) {
+      const sec = Math.ceil(totalMs / 1000);
+      $("total-timer").textContent = `⏱️ เหลือ ${formatTime(sec)}`;
+      $("total-timer").classList.toggle("low", sec <= 10);
+      if (state.totalEnd !== null && sec !== state.lastTotalSec) {
+        state.lastTotalSec = sec;
+        if (sec > 0 && sec <= 5 && state.qEnd === null) sounds.tick();
+      }
+      if (state.totalEnd !== null && totalMs === 0) endGame(true);
+    }
+  }
+
+  // ---------- สรุปผล ----------
+  function endGame(timeUp) {
+    state.locked = true;
+    state.round++; // ยกเลิกการไปข้อถัดไปที่ค้างอยู่
+    stopTimers();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+
+    const total = state.questions.length;
+    const answered = timeUp ? state.index : total;
+    const score = state.score;
+    const ratio = score / total;
+    const stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1;
+
+    $("progress").style.width = `${(answered / total) * 100}%`;
+    $("result-title").textContent = timeUp ? `⏰ หมดเวลา! ทำไปได้ ${answered} ข้อ` : "";
+    $("stars").innerHTML = [1, 2, 3]
+      .map((n) => `<span class="${n <= stars ? "" : "off"}" style="animation-delay:${n * 0.2}s">⭐</span>`)
+      .join("");
+    $("result-score").textContent = `ตอบถูก ${score} จาก ${total} ข้อ`;
+
+    const messages = {
+      3: ["🏆", "สุดยอด! รู้จักคำศัพท์สัตว์เยอะมากเลย"],
+      2: ["🥳", "เก่งมาก! อีกนิดเดียวก็ได้ 3 ดาวแล้ว"],
+      1: ["🤗", "พยายามได้ดีมาก! ทบทวนคำศัพท์แล้วลองใหม่นะ"],
+    };
+    $("result-mascot").textContent = messages[stars][0];
+    $("result-msg").textContent = messages[stars][1];
+    renderReview();
+
+    showScreen("result");
+    sounds.finish();
+    launchConfetti(stars * 40);
+  }
+
+  function renderReview() {
+    const box = $("review");
+    box.innerHTML = "";
+    if (state.missed.length === 0) {
+      box.append(el("p", "perfect", "🌟 ไม่มีคำที่ต้องทบทวนเลย เก่งมาก!"));
+      return;
+    }
+    box.append(el("h2", "", "📚 คำที่ควรทบทวน"));
+    state.missed.forEach((item) => {
+      const row = el("div", "review-row");
+      const text = el("div");
+      text.append(el("div", "r-word", item.word), el("div", "r-thai", item.th));
+      if (state.settings.pics === "photo") text.append(creditLink(item));
+      const btn = el("button", "btn speak-btn", "🔊");
+      btn.addEventListener("click", () => speak(item.word));
+      row.append(picture(item, "r-pic"), text, btn);
+      box.append(row);
+    });
+  }
+
+  function launchConfetti(count) {
+    const colors = ["#ff7a59", "#ffc93c", "#3cc47c", "#4d9fff", "#a66cff", "#ff5a6e"];
+    for (let i = 0; i < count; i++) {
+      const piece = el("div", "confetti");
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.background = pick(colors);
+      piece.style.animationDuration = `${2 + Math.random() * 2}s`;
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
+      document.body.append(piece);
+      setTimeout(() => piece.remove(), 5000);
+    }
+  }
+
+  // ---------- ปุ่มต่าง ๆ ----------
+  function goHome() {
+    state.locked = true;
+    state.round++;
+    stopTimers();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    renderSettings();
+    showScreen("start");
+  }
+
+  $("start-btn").addEventListener("click", startGame);
+  $("again-btn").addEventListener("click", startGame);
+  $("settings-btn").addEventListener("click", goHome);
+  $("home-btn").addEventListener("click", goHome);
+  $("sound-btn").addEventListener("click", () => {
+    state.soundOn = !state.soundOn;
+    $("sound-btn").textContent = state.soundOn ? "🔊" : "🔇";
+    if (!state.soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  // คีย์บอร์ด: 1–4 เลือกคำตอบ / พิมพ์ตัวอักษรเพื่อสะกดคำ
+  document.addEventListener("keydown", (e) => {
+    if (screens.game.classList.contains("hidden") || state.locked) return;
+    const { type } = state.questions[state.index];
+    if (type === "spell") {
+      const letter = e.key.toLowerCase();
+      if (!/^[a-z]$/.test(letter)) return;
+      const match = [...document.querySelectorAll(".tile:not(:disabled)")].find((t) => t.dataset.letter === letter);
+      if (match) tapTile(match);
+      else wrongLetter(null); // พิมพ์ตัวที่ไม่มีในคำ
+      return;
+    }
+    const index = Number(e.key) - 1;
+    const buttons = document.querySelectorAll(".choice");
+    if (index >= 0 && index < buttons.length) buttons[index].click();
+  });
+
+  loadSettings();
+  renderSettings();
+</script>
+</body>
+</html>

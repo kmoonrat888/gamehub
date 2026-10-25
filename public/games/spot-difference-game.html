@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกมจับผิดภาพ</title>
+<style>
+  :root {
+    --bg1: #ffe7f1;
+    --bg2: #d8f1ff;
+    --card: #ffffff;
+    --ink: #33295a;
+    --muted: #6d6590;
+    --primary: #ff7a59;
+    --green: #2fb874;
+    --red: #f2506a;
+    --yellow: #ffc93c;
+    --blue: #4d8dff;
+    --purple: #9a6cff;
+    --soft: #f2effb;
+    --shadow: 0 8px 0 rgba(51, 41, 90, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { height: 100%; }
+
+  body {
+    min-height: 100%;
+    font-family: "Leelawadee UI", "Segoe UI", "Tahoma", "Noto Sans Thai", sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .hidden { display: none !important; }
+
+  .card {
+    width: 100%;
+    max-width: 1000px;
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.08);
+    padding: 22px;
+  }
+  .card.narrow { max-width: 560px; }
+
+  .btn {
+    font-family: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16);
+    transition: transform 0.08s, box-shadow 0.08s, opacity 0.2s;
+  }
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16);
+  }
+  .btn:disabled { cursor: default; opacity: 0.45; }
+  .btn-primary { background: var(--primary); }
+  .btn-blue { background: var(--blue); }
+  .btn-green { background: var(--green); }
+  .btn-yellow { background: var(--yellow); color: var(--ink); }
+  .btn-soft { background: var(--soft); color: var(--ink); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08); }
+
+  /* ---------- หน้าแรก ---------- */
+  .title { text-align: center; margin-bottom: 16px; }
+  .title .emoji { font-size: 60px; }
+  .title h1 { font-size: clamp(28px, 7vw, 40px); }
+  .title p { color: var(--muted); font-size: 17px; margin-top: 4px; }
+
+  .rules {
+    background: var(--soft);
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-size: 16px;
+    line-height: 1.75;
+    margin-bottom: 16px;
+  }
+  .label { font-weight: 700; margin-bottom: 8px; }
+  .options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .option {
+    background: var(--soft);
+    color: var(--ink);
+    border: 3px solid transparent;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+    padding: 10px 4px;
+    font-size: 17px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .option small { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .option.selected { background: #fff4d1; border-color: var(--yellow); }
+  .start-btn { width: 100%; font-size: 24px; padding: 15px; }
+
+  /* ---------- หน้าเกม ---------- */
+  .hud {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .icon-btn { width: 44px; height: 44px; font-size: 20px; flex-shrink: 0; }
+  .level-name {
+    flex: 1;
+    text-align: center;
+    font-size: clamp(16px, 4vw, 21px);
+    font-weight: 800;
+  }
+  .chip {
+    font-size: 15px;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 99px;
+    background: #e8f1ff;
+    color: #2f63c9;
+    white-space: nowrap;
+  }
+
+  .status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 16px;
+    margin-bottom: 12px;
+    font-weight: 800;
+  }
+  .found-dots { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+  .found-dots i {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid var(--green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-style: normal;
+    font-size: 13px;
+    color: #fff;
+  }
+  .found-dots i.on { background: var(--green); animation: pop 0.3s ease; }
+  .wrong-count { color: var(--red); font-size: 16px; }
+  .hint-btn { font-size: 16px; padding: 7px 14px; }
+
+  .images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .images figure { margin: 0; }
+  .images figcaption {
+    text-align: center;
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .pic {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 4px solid #e4def6;
+    cursor: crosshair;
+    line-height: 0;
+    touch-action: manipulation;
+  }
+  .pic svg { width: 100%; height: auto; display: block; }
+  .pic.cooldown { cursor: wait; }
+
+  .found-mark {
+    fill: rgba(47, 184, 116, 0.15);
+    stroke: var(--green);
+    stroke-width: 4;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pop 0.35s ease;
+  }
+  .wrong-mark {
+    fill: var(--red);
+    font-size: 30px;
+    font-weight: 900;
+    text-anchor: middle;
+    dominant-baseline: central;
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 4;
+    animation: fadeout 0.8s ease forwards;
+  }
+  .hint-mark {
+    fill: rgba(255, 201, 60, 0.25);
+    stroke: var(--yellow);
+    stroke-width: 4;
+    stroke-dasharray: 8 6;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: blink 0.5s ease-in-out infinite alternate;
+  }
+
+  .found-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    min-height: 34px;
+    margin-top: 12px;
+  }
+  .found-list span {
+    background: #e3f8ec;
+    color: #1f8a55;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 5px 12px;
+    border-radius: 99px;
+    animation: pop 0.3s ease;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    top: 18px;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: #fff;
+    font-weight: 800;
+    font-size: 18px;
+    padding: 10px 20px;
+    border-radius: 16px;
+    z-index: 50;
+    white-space: nowrap;
+    animation: drop 0.3s ease;
+  }
+
+  /* ---------- หน้าต่างคำถามคณิต ---------- */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 20, 60, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 30;
+    overflow-y: auto;
+  }
+  .modal .card { max-width: 520px; text-align: center; animation: rise 0.35s ease; }
+  .m-title { font-size: clamp(20px, 5vw, 25px); font-weight: 800; }
+  .m-sub { color: var(--muted); font-size: 15px; margin: 2px 0 10px; }
+  .m-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+  .m-dots span {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: var(--muted);
+  }
+  .m-dots .now { background: var(--yellow); color: var(--ink); }
+  .m-dots .done { background: var(--green); color: #fff; }
+  .m-q {
+    font-weight: 800;
+    margin: 6px 0 14px;
+  }
+  .m-q.math { font-size: clamp(36px, 10vw, 52px); }
+  .m-q.word { font-size: clamp(18px, 4.8vw, 22px); line-height: 1.55; }
+  .m-q .pics { display: block; font-size: 30px; margin-bottom: 4px; }
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .choice { font-size: clamp(22px, 6vw, 30px); padding: 12px 4px; background: var(--primary); }
+  .choice:nth-child(2) { background: var(--blue); }
+  .choice:nth-child(3) { background: var(--purple); }
+  .choice:nth-child(4) { background: #ff9f1c; }
+  .choice.correct { background: var(--green) !important; opacity: 1; }
+  .choice.wrong { background: #c9c3d9 !important; animation: shake 0.4s; opacity: 1; }
+  .feedback { min-height: 28px; margin-top: 10px; font-size: 19px; font-weight: 800; }
+  .feedback.good { color: var(--green); }
+  .feedback.bad { color: var(--red); }
+  .m-next { width: 100%; font-size: 21px; padding: 13px; margin-top: 8px; }
+
+  /* ---------- หน้าจบเกม ---------- */
+  .final { text-align: center; }
+  .final .emoji { font-size: 76px; animation: hop 1s ease-in-out infinite; }
+  .final h2 { font-size: clamp(28px, 7vw, 38px); color: var(--primary); }
+  .final .stars { font-size: 48px; letter-spacing: 6px; margin: 6px 0 10px; }
+  .final .stars .off { filter: grayscale(1); opacity: 0.3; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stats div {
+    background: var(--soft);
+    border-radius: 14px;
+    padding: 10px 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .stats b { display: block; font-size: 24px; color: var(--ink); }
+  .final .actions { display: grid; gap: 10px; }
+  .final .actions .btn { font-size: 20px; padding: 13px; }
+
+  .confetti {
+    position: fixed;
+    top: -20px;
+    width: 12px;
+    height: 18px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 60;
+    animation: fall linear forwards;
+  }
+
+  @keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes fadeout { 0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes blink { from { opacity: 0.35; transform: scale(0.92); } to { opacity: 1; transform: scale(1.08); } }
+  @keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+  @keyframes hop { 50% { transform: translateY(-10px); } }
+  @keyframes drop { from { transform: translate(-50%, -20px); opacity: 0; } }
+  @keyframes rise { from { transform: translateY(30px) scale(0.92); opacity: 0; } }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+  @media (max-width: 680px) {
+    body { padding: 8px; }
+    .card { padding: 14px; border-radius: 22px; }
+    .images { grid-template-columns: 1fr; gap: 10px; }
+    .options { grid-template-columns: 1fr 1fr 1fr; }
+    .option { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- หน้าแรก -->
+  <section class="card narrow" id="start-screen">
+    <div class="title">
+      <div class="emoji">🔍</div>
+      <h1>เกมจับผิดภาพ</h1>
+      <p>หาจุดที่ต่างกัน 5 จุด แล้วตอบคำถามคณิตเพื่อผ่านด่าน!</p>
+    </div>
+    <div class="rules">
+      🔍 ดูภาพ 2 ภาพ แล้ว<b>แตะจุดที่ต่างกัน</b> (แตะภาพไหนก็ได้)<br>
+      ✅ หาให้ครบ <b>5 จุด</b> ในแต่ละด่าน มีทั้งหมด 5 ด่าน<br>
+      🧮 หาครบแล้ว ต้อง<b>ตอบคำถามคณิตให้ถูก 3 ข้อ</b> ก่อนไปด่านต่อไป<br>
+      💡 ติดตรงไหน กดคำใบ้ได้ด่านละ 1 ครั้ง
+    </div>
+    <p class="label">ระดับคำถามคณิตศาสตร์</p>
+    <div class="options" id="difficulty">
+      <button class="btn option" data-level="0">🐣 ง่าย<small>บวก ลบ คูณ หาร เลขน้อย</small></button>
+      <button class="btn option" data-level="1">🐰 ปานกลาง<small>เลขสองหลัก</small></button>
+      <button class="btn option" data-level="2">🦊 ยาก<small>เลขมากขึ้น</small></button>
+    </div>
+    <button class="btn btn-green start-btn" id="start-btn">เริ่มเล่น ▶️</button>
+  </section>
+
+  <!-- หน้าเกม -->
+  <section class="card hidden" id="game-screen">
+    <div class="hud">
+      <button class="btn btn-soft icon-btn" id="home-btn" title="กลับหน้าแรก">🏠</button>
+      <span class="level-name" id="level-name"></span>
+      <span class="chip" id="timer">⏱️ 0:00</span>
+      <button class="btn btn-soft icon-btn" id="sound-btn" title="เปิด/ปิดเสียง">🔊</button>
+    </div>
+    <div class="status">
+      <span class="found-dots" id="found-dots"></span>
+      <span class="wrong-count" id="wrong-count">❌ แตะผิด 0</span>
+      <button class="btn btn-yellow hint-btn" id="hint-btn">💡 คำใบ้</button>
+    </div>
+    <div class="images">
+      <figure>
+        <figcaption>ภาพที่ 1</figcaption>
+        <div class="pic" id="pic-a"></div>
+      </figure>
+      <figure>
+        <figcaption>ภาพที่ 2</figcaption>
+        <div class="pic" id="pic-b"></div>
+      </figure>
+    </div>
+    <div class="found-list" id="found-list"></div>
+  </section>
+
+  <!-- หน้าต่างคำถามคณิตศาสตร์ -->
+  <div class="modal hidden" id="math-modal">
+    <div class="card">
+      <div class="m-title">🧮 คำถามคณิตศาสตร์</div>
+      <p class="m-sub" id="m-sub">ตอบให้ถูก 3 ข้อ ก่อนไปด่านต่อไป</p>
+      <div class="m-dots" id="m-dots"></div>
+      <div class="m-q" id="m-q"></div>
+      <div class="choices" id="m-choices"></div>
+      <div class="feedback" id="m-feedback"></div>
+      <button class="btn btn-green m-next hidden" id="m-next"></button>
+    </div>
+  </div>
+
+  <!-- หน้าจบเกม -->
+  <section class="card narrow final hidden" id="final-screen">
+    <div class="emoji">🏆</div>
+    <h2>🎉 เก่งมาก! 🎉</h2>
+    <p>จับผิดภาพครบทั้ง 5 ด่าน และตอบคำถามคณิตผ่านทุกด่านแล้ว</p>
+    <div class="stars" id="f-stars"></div>
+    <div class="stats">
+      <div><b id="f-time"></b>เวลาที่ใช้หาจุดต่าง</div>
+      <div><b id="f-wrong"></b>แตะผิด</div>
+      <div><b id="f-math"></b>ตอบคณิตผิด</div>
+      <div><b id="f-hint"></b>ใช้คำใบ้</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
+      <button class="btn btn-soft" id="menu-btn">🏠 กลับหน้าแรก</button>
+    </div>
+  </section>
+
+<script>
+  // ======================================================================
+  //  ตัวช่วยวาดภาพ (SVG ขนาด 400 × 300)
+  // ======================================================================
+  const f = (n) => Math.round(n * 10) / 10;
+
+  function sun(x, y, c, r = 26) {
+    const rays = Array.from({ length: 8 }, (_, i) => {
+      const a = (i * Math.PI) / 4;
+      return `<line x1="${f(x + Math.cos(a) * (r + 5))}" y1="${f(y + Math.sin(a) * (r + 5))}" x2="${f(x + Math.cos(a) * (r + 13))}" y2="${f(y + Math.sin(a) * (r + 13))}" stroke="${c}" stroke-width="4" stroke-linecap="round"/>`;
+    }).join("");
+    return `<g>${rays}<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/></g>`;
+  }
+
+  const cloud = (x, y, s = 1) =>
+    `<g transform="translate(${x} ${y}) scale(${s})" fill="#fff"><ellipse rx="30" ry="15"/><ellipse cx="-22" cy="6" rx="20" ry="11"/><ellipse cx="22" cy="6" rx="22" ry="11"/><ellipse cx="4" cy="-10" rx="18" ry="13"/></g>`;
+
+  const bird = (x, y) =>
+    `<path d="M${x - 12} ${y} Q${x - 6} ${y - 8} ${x} ${y} Q${x + 6} ${y - 8} ${x + 12} ${y}" stroke="#3B2F5A" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+
+  function star(x, y, R, r, c, stroke = "") {
+    const pts = Array.from({ length: 10 }, (_, i) => {
+      const rad = i % 2 ? r : R;
+      const a = (i * Math.PI) / 5 - Math.PI / 2;
+      return `${f(x + Math.cos(a) * rad)},${f(y + Math.sin(a) * rad)}`;
+    }).join(" ");
+    return `<polygon points="${pts}" fill="${c}" ${stroke}/>`;
+  }
+
+  function flower(x, y, c) {
+    const petals = [0, 72, 144, 216, 288].map((deg) => {
+      const a = (deg * Math.PI) / 180;
+      return `<circle cx="${f(x + Math.cos(a) * 8)}" cy="${f(y + Math.sin(a) * 8)}" r="7" fill="${c}"/>`;
+    }).join("");
+    return `<g><path d="M${x} ${y} L${x} ${y + 26}" stroke="#3E9A3A" stroke-width="3"/><ellipse cx="${x + 6}" cy="${y + 18}" rx="6" ry="3" fill="#3E9A3A"/>${petals}<circle cx="${x}" cy="${y}" r="5" fill="#FFD447"/></g>`;
+  }
+
+  const butterfly = (x, y, c) =>
+    `<g><ellipse cx="${x - 9}" cy="${y - 5}" rx="9" ry="11" fill="${c}"/><ellipse cx="${x + 9}" cy="${y - 5}" rx="9" ry="11" fill="${c}"/><ellipse cx="${x - 7}" cy="${y + 8}" rx="6" ry="7" fill="${c}"/><ellipse cx="${x + 7}" cy="${y + 8}" rx="6" ry="7" fill="${c}"/><rect x="${x - 2}" y="${y - 11}" width="4" height="23" rx="2" fill="#3B2F5A"/></g>`;
+
+  const ball = (x, y, r, c1, c2) =>
+    `<g><circle cx="${x}" cy="${y}" r="${r}" fill="${c1}"/><path d="M${x - r} ${y} A${r} ${r} 0 0 0 ${x + r} ${y} Z" fill="${c2}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#333" stroke-width="2"/></g>`;
+
+  const shell = (x, y) =>
+    `<g><path d="M${x - 13} ${y + 6} Q${x} ${y - 18} ${x + 13} ${y + 6} Z" fill="#FFC6D9" stroke="#E28AA8" stroke-width="2"/><path d="M${x} ${y + 6} L${x} ${y - 9} M${x - 6} ${y + 6} L${x - 4} ${y - 7} M${x + 6} ${y + 6} L${x + 4} ${y - 7}" stroke="#E28AA8" stroke-width="1.5"/></g>`;
+
+  const heart = (x, y, c) =>
+    `<path d="M${x} ${y + 12} C${x - 24} ${y - 4} ${x - 12} ${y - 20} ${x} ${y - 8} C${x + 12} ${y - 20} ${x + 24} ${y - 4} ${x} ${y + 12} Z" fill="${c}"/>`;
+
+  function fish(x, y, c, flip = false, stripes = false) {
+    const lines = stripes ? `<path d="M-4 -11 L-4 11 M7 -9 L7 9" stroke="#fff" stroke-width="3"/>` : "";
+    return `<g transform="translate(${x} ${y}) scale(${flip ? -1 : 1} 1)"><path d="M-24 0 Q0 -18 22 0 Q0 18 -24 0 Z" fill="${c}"/><path d="M18 0 L34 -12 L34 12 Z" fill="${c}"/>${lines}<circle cx="-13" cy="-3" r="3.5" fill="#222"/></g>`;
+  }
+
+  // ======================================================================
+  //  ฉากทั้ง 5 ด่าน
+  //  parts = ส่วนของภาพเรียงจากหลังไปหน้า (ข้อความ = ส่วนที่เหมือนกันทั้ง 2 ภาพ)
+  //  ส่วนที่เป็น object = จุดที่อาจต่างกัน: base = ภาพที่ 1, alt = ภาพที่ 2 ("" = หายไป)
+  //  hit = [x, y, รัศมี] บริเวณที่แตะแล้วนับว่าเจอ
+  // ======================================================================
+  const SCENES = [
+    {
+      name: "สวนหน้าบ้าน", place: "สวน", thing: "ดอกไม้", unit: "ดอก", emoji: "🌸",
+      parts: [
+        `<defs><linearGradient id="park-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset="1" stop-color="#e3f6ff"/></linearGradient></defs>
+         <rect width="400" height="300" fill="url(#park-sky)"/>
+         <ellipse cx="90" cy="215" rx="160" ry="60" fill="#a6dd84"/>
+         <ellipse cx="340" cy="220" rx="140" ry="50" fill="#9bd67a"/>
+         <rect y="205" width="400" height="95" fill="#7ccf5a"/>
+         <path d="M232 300 Q244 262 246 232 L258 232 Q262 262 282 300 Z" fill="#e6c48f"/>`,
+        { label: "สีดวงอาทิตย์", hit: [340, 52, 36], base: sun(340, 52, "#FFD447"), alt: sun(340, 52, "#FF7A3D") },
+        { label: "ก้อนเมฆหายไป", hit: [112, 45, 38], base: cloud(112, 45), alt: "" },
+        cloud(225, 32, 0.7),
+        { label: "นกหายไป", hit: [175, 88, 22], base: bird(175, 88), alt: "" },
+        `<rect x="62" y="148" width="16" height="64" fill="#8a5a30"/>`,
+        {
+          label: "ผลแอปเปิลบนต้นไม้", hit: [70, 128, 40],
+          base: `<g><circle cx="70" cy="122" r="34" fill="#3fae5a"/><circle cx="44" cy="136" r="22" fill="#379f50"/><circle cx="96" cy="136" r="22" fill="#379f50"/><circle cx="58" cy="114" r="5" fill="#f2506a"/><circle cx="84" cy="124" r="5" fill="#f2506a"/><circle cx="66" cy="140" r="5" fill="#f2506a"/></g>`,
+          alt: `<g><circle cx="70" cy="122" r="34" fill="#3fae5a"/><circle cx="44" cy="136" r="22" fill="#379f50"/><circle cx="96" cy="136" r="22" fill="#379f50"/></g>`,
+        },
+        { label: "ปล่องไฟหายไป", hit: [290, 126, 18], base: `<rect x="282" y="110" width="16" height="34" fill="#9c4a3c"/>`, alt: "" },
+        `<rect x="205" y="160" width="110" height="72" fill="#FFE3B3" stroke="#d9a86c" stroke-width="3"/>
+         <polygon points="195,163 260,112 325,163" fill="#E8574F"/>
+         <rect x="211" y="172" width="22" height="22" fill="#9fd8ff" stroke="#8B5A2B" stroke-width="3"/>
+         <path d="M222 172 V194 M211 183 H233" stroke="#8B5A2B" stroke-width="2"/>`,
+        {
+          label: "สีประตู", hit: [252, 212, 22],
+          base: `<g><rect x="240" y="192" width="24" height="40" rx="3" fill="#8B5A2B"/><circle cx="258" cy="213" r="2.5" fill="#FFD447"/></g>`,
+          alt: `<g><rect x="240" y="192" width="24" height="40" rx="3" fill="#4D8DFF"/><circle cx="258" cy="213" r="2.5" fill="#FFD447"/></g>`,
+        },
+        {
+          label: "ไฟในหน้าต่าง", hit: [292, 183, 18],
+          base: `<g><rect x="281" y="172" width="22" height="22" fill="#9fd8ff" stroke="#8B5A2B" stroke-width="3"/><path d="M292 172 V194 M281 183 H303" stroke="#8B5A2B" stroke-width="2"/></g>`,
+          alt: `<g><rect x="281" y="172" width="22" height="22" fill="#FFE066" stroke="#8B5A2B" stroke-width="3"/><path d="M292 172 V194 M281 183 H303" stroke="#8B5A2B" stroke-width="2"/></g>`,
+        },
+        `<rect x="183" y="232" width="4" height="34" fill="#8a5a30"/><rect x="173" y="218" width="24" height="16" rx="7" fill="#4D8DFF"/><rect x="197" y="212" width="3" height="18" fill="#666"/>`,
+        { label: "ธงกล่องจดหมาย", hit: [202, 215, 16], base: `<rect x="197" y="211" width="12" height="7" fill="#f2506a"/>`, alt: "" },
+        flower(100, 262, "#FFD447"),
+        { label: "สีดอกไม้", hit: [132, 256, 22], base: flower(132, 256, "#FF5A6E"), alt: flower(132, 256, "#A66CFF") },
+        { label: "ผีเสื้อหายไป", hit: [335, 232, 24], base: butterfly(335, 232, "#FF8FC7"), alt: "" },
+        { label: "สีลูกบอล", hit: [368, 280, 18], base: ball(368, 280, 13, "#f2506a", "#fff"), alt: ball(368, 280, 13, "#4D8DFF", "#fff") },
+      ],
+    },
+    {
+      name: "ชายหาด", place: "ชายหาด", thing: "เปลือกหอย", unit: "ชิ้น", emoji: "🐚",
+      parts: [
+        `<defs><linearGradient id="beach-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd0ff"/><stop offset="1" stop-color="#e6f7ff"/></linearGradient>
+         <clipPath id="beach-umb"><path d="M278 192 A42 30 0 0 1 362 192 Z"/></clipPath></defs>
+         <rect width="400" height="300" fill="url(#beach-sky)"/>
+         <rect y="140" width="400" height="70" fill="#3fa9f5"/>
+         <path d="M10 158 q10 -6 20 0 M80 172 q10 -6 20 0 M150 152 q10 -6 20 0 M320 166 q10 -6 20 0 M360 150 q10 -6 20 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>
+         <path d="M0 202 Q200 186 400 202 L400 300 L0 300 Z" fill="#F3D79A"/>`,
+        { label: "ขนาดดวงอาทิตย์", hit: [60, 50, 34], base: sun(60, 50, "#FFD447", 24), alt: sun(60, 50, "#FFD447", 13) },
+        { label: "นกนางนวลหายไป", hit: [150, 62, 22], base: bird(150, 62), alt: "" },
+        { label: "ก้อนเมฆหายไป", hit: [320, 45, 36], base: cloud(320, 45, 0.9), alt: "" },
+        `<path d="M215 160 L295 160 L282 180 L228 180 Z" fill="#8B5A2B"/><rect x="253" y="94" width="4" height="66" fill="#5a3a1c"/>`,
+        { label: "สีใบเรือ", hit: [240, 136, 22], base: `<path d="M252 100 L252 156 L216 156 Z" fill="#fff" stroke="#ccc" stroke-width="1.5"/>`, alt: `<path d="M252 100 L252 156 L216 156 Z" fill="#FF5A6E" stroke="#ccc" stroke-width="1.5"/>` },
+        { label: "ธงบนเสาเรือหายไป", hit: [266, 98, 13], base: `<path d="M257 92 L277 98 L257 104 Z" fill="#FF5A6E"/>`, alt: "" },
+        `<path d="M58 262 Q50 205 72 150" stroke="#8a5a30" stroke-width="10" fill="none" stroke-linecap="round"/>
+         <path d="M72 150 Q50 128 22 140 M72 150 Q60 120 42 108 M72 150 Q90 118 114 116 M72 150 Q100 136 122 154 M72 150 Q80 122 78 98" stroke="#2f8f4e" stroke-width="8" fill="none" stroke-linecap="round"/>`,
+        {
+          label: "จำนวนลูกมะพร้าว", hit: [72, 160, 20],
+          base: `<g fill="#6b4423"><circle cx="64" cy="157" r="6"/><circle cx="80" cy="157" r="6"/><circle cx="72" cy="167" r="6"/></g>`,
+          alt: `<g fill="#6b4423"><circle cx="64" cy="157" r="6"/><circle cx="80" cy="157" r="6"/></g>`,
+        },
+        `<rect x="318" y="192" width="4" height="60" fill="#8a5a30"/>`,
+        {
+          label: "สีร่มชายหาด", hit: [320, 182, 30],
+          base: `<g clip-path="url(#beach-umb)"><rect x="278" y="160" width="28" height="34" fill="#FF5A6E"/><rect x="306" y="160" width="28" height="34" fill="#fff"/><rect x="334" y="160" width="28" height="34" fill="#FF5A6E"/></g>`,
+          alt: `<g clip-path="url(#beach-umb)"><rect x="278" y="160" width="28" height="34" fill="#4D8DFF"/><rect x="306" y="160" width="28" height="34" fill="#fff"/><rect x="334" y="160" width="28" height="34" fill="#4D8DFF"/></g>`,
+        },
+        `<rect x="162" y="240" width="46" height="32" fill="#E6C07A"/><rect x="162" y="231" width="10" height="10" fill="#E6C07A"/><rect x="180" y="231" width="10" height="10" fill="#E6C07A"/><rect x="198" y="231" width="10" height="10" fill="#E6C07A"/><path d="M178 272 V258 Q185 250 192 258 V272 Z" fill="#c9a25c"/><rect x="184" y="210" width="2" height="22" fill="#555"/>`,
+        { label: "ธงบนปราสาททราย", hit: [192, 216, 14], base: `<path d="M186 210 L200 215 L186 220 Z" fill="#4D8DFF"/>`, alt: "" },
+        { label: "สีปลาดาว", hit: [118, 272, 18], base: star(118, 272, 14, 6, "#FF9F45"), alt: star(118, 272, 14, 6, "#A66CFF") },
+        { label: "ลูกบอลชายหาดหายไป", hit: [256, 264, 18], base: ball(256, 264, 14, "#FFD447", "#FF5A6E"), alt: "" },
+        { label: "เปลือกหอยหายไป", hit: [370, 282, 15], base: shell(370, 282), alt: "" },
+      ],
+    },
+    {
+      name: "ห้องนอน", place: "ห้องนอน", thing: "หนังสือ", unit: "เล่ม", emoji: "📚",
+      parts: [
+        `<rect width="400" height="210" fill="#FFF1D6"/><rect y="210" width="400" height="90" fill="#D9A86C"/><rect y="205" width="400" height="8" fill="#b9864d"/>
+         <rect x="35" y="35" width="70" height="70" rx="6" fill="#bfe8ff"/>`,
+        {
+          label: "นอกหน้าต่าง (กลางวัน/กลางคืน)", hit: [70, 70, 32],
+          base: `<circle cx="70" cy="70" r="15" fill="#FFD447"/>`,
+          alt: `<g><rect x="38" y="38" width="64" height="64" fill="#2c3e7a"/><circle cx="70" cy="70" r="15" fill="#FFE98A"/><circle cx="78" cy="64" r="13" fill="#2c3e7a"/></g>`,
+        },
+        `<rect x="35" y="35" width="70" height="70" rx="6" fill="none" stroke="#8B5A2B" stroke-width="6"/><path d="M70 35 V105 M35 70 H105" stroke="#8B5A2B" stroke-width="4"/>
+         <rect x="28" y="140" width="96" height="8" fill="#8B5A2B"/><rect x="100" y="122" width="14" height="18" rx="4" fill="#9a6cff"/>`,
+        {
+          label: "จำนวนหนังสือ", hit: [61, 126, 22],
+          base: `<g><rect x="38" y="106" width="14" height="34" fill="#FF5A6E"/><rect x="54" y="110" width="14" height="30" fill="#4D8DFF"/><rect x="70" y="104" width="14" height="36" fill="#2FB874"/></g>`,
+          alt: `<g><rect x="38" y="106" width="14" height="34" fill="#FF5A6E"/><rect x="54" y="110" width="14" height="30" fill="#4D8DFF"/></g>`,
+        },
+        `<rect x="175" y="35" width="56" height="48" fill="#fff" stroke="#E8A33D" stroke-width="6"/>`,
+        { label: "รูปในกรอบ", hit: [203, 59, 26], base: heart(203, 61, "#FF5A6E"), alt: star(203, 60, 15, 6, "#FFC93C") },
+        `<circle cx="320" cy="58" r="24" fill="#fff" stroke="#4D8DFF" stroke-width="5"/>`,
+        {
+          label: "เข็มนาฬิกา", hit: [320, 58, 26],
+          base: `<g stroke="#33295a" stroke-linecap="round"><line x1="320" y1="58" x2="320" y2="41" stroke-width="3"/><line x1="320" y1="58" x2="331" y2="58" stroke-width="4"/></g>`,
+          alt: `<g stroke="#33295a" stroke-linecap="round"><line x1="320" y1="58" x2="320" y2="41" stroke-width="3"/><line x1="320" y1="58" x2="309" y2="58" stroke-width="4"/></g>`,
+        },
+        `<rect x="150" y="150" width="14" height="80" rx="4" fill="#8B5A2B"/><rect x="150" y="200" width="188" height="26" fill="#a8723f"/><rect x="330" y="178" width="10" height="52" rx="3" fill="#8B5A2B"/>`,
+        { label: "หมอนหายไป", hit: [188, 192, 22], base: `<ellipse cx="188" cy="193" rx="21" ry="9" fill="#fff" stroke="#ddd" stroke-width="2"/>`, alt: "" },
+        {
+          label: "สีผ้าห่ม", hit: [270, 197, 32],
+          base: `<g><rect x="208" y="186" width="122" height="22" rx="8" fill="#4D8DFF"/><circle cx="228" cy="197" r="3" fill="#fff"/><circle cx="256" cy="194" r="3" fill="#fff"/><circle cx="284" cy="199" r="3" fill="#fff"/><circle cx="312" cy="195" r="3" fill="#fff"/></g>`,
+          alt: `<g><rect x="208" y="186" width="122" height="22" rx="8" fill="#2FB874"/><circle cx="228" cy="197" r="3" fill="#fff"/><circle cx="256" cy="194" r="3" fill="#fff"/><circle cx="284" cy="199" r="3" fill="#fff"/><circle cx="312" cy="195" r="3" fill="#fff"/></g>`,
+        },
+        `<rect x="352" y="170" width="40" height="40" fill="#a8723f"/><rect x="369" y="140" width="6" height="30" fill="#555"/>`,
+        { label: "สีโคมไฟ", hit: [372, 130, 22], base: `<polygon points="355,142 389,142 380,116 364,116" fill="#FFC93C"/>`, alt: `<polygon points="355,142 389,142 380,116 364,116" fill="#FF85C8"/>` },
+        { label: "สีพรม", hit: [232, 268, 34], base: `<ellipse cx="232" cy="268" rx="62" ry="18" fill="#A66CFF" stroke="#7a48d6" stroke-width="3"/>`, alt: `<ellipse cx="232" cy="268" rx="62" ry="18" fill="#FF9F45" stroke="#d97a20" stroke-width="3"/>` },
+        `<g><ellipse cx="70" cy="274" rx="18" ry="15" fill="#C68B59"/><circle cx="59" cy="236" r="6" fill="#C68B59"/><circle cx="81" cy="236" r="6" fill="#C68B59"/><circle cx="70" cy="248" r="14" fill="#C68B59"/><ellipse cx="70" cy="253" rx="6" ry="4" fill="#E8C49A"/><circle cx="65" cy="245" r="2" fill="#222"/><circle cx="75" cy="245" r="2" fill="#222"/><circle cx="70" cy="252" r="1.6" fill="#222"/></g>`,
+        { label: "โบว์ของตุ๊กตาหมี", hit: [70, 263, 16], base: `<g><path d="M60 258 L70 263 L60 268 Z M80 258 L70 263 L80 268 Z" fill="#FF5A6E"/><circle cx="70" cy="263" r="2.5" fill="#C2185B"/></g>`, alt: "" },
+        `<ellipse cx="118" cy="285" rx="11" ry="6" fill="#FF85C8"/>`,
+        { label: "รองเท้าแตะหายไป 1 ข้าง", hit: [142, 285, 17], base: `<ellipse cx="142" cy="285" rx="11" ry="6" fill="#FF85C8"/>`, alt: "" },
+        `<path d="M360 262 L384 262 L380 288 L364 288 Z" fill="#E8574F"/><path d="M372 262 Q360 250 356 240 M372 262 Q384 252 390 244" stroke="#3E9A3A" stroke-width="3" fill="none"/>`,
+        { label: "ดอกไม้ในกระถาง", hit: [372, 238, 18], base: flower(372, 236, "#FF5A6E"), alt: "" },
+      ],
+    },
+    {
+      name: "ใต้ท้องทะเล", place: "ทะเล", thing: "ปลา", unit: "ตัว", emoji: "🐟",
+      parts: [
+        `<defs><linearGradient id="sea-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fd0ff"/><stop offset="1" stop-color="#1e6fd1"/></linearGradient></defs>
+         <rect width="400" height="300" fill="url(#sea-water)"/>
+         <polygon points="60,0 90,0 150,260 110,260" fill="#fff" opacity=".08"/><polygon points="230,0 255,0 300,260 265,260" fill="#fff" opacity=".08"/>
+         <path d="M0 255 Q100 240 200 255 T400 252 L400 300 L0 300 Z" fill="#F3D79A"/>
+         <path d="M25 258 Q15 238 25 220 Q35 202 25 184" stroke="#2f8f4e" stroke-width="8" fill="none" stroke-linecap="round"/>`,
+        { label: "สีปลา", hit: [95, 95, 30], base: fish(95, 95, "#FF9F45"), alt: fish(95, 95, "#2FB874") },
+        { label: "ปลาหันไปอีกทาง", hit: [305, 70, 32], base: fish(305, 70, "#FFD447", false, true), alt: fish(305, 70, "#FFD447", true, true) },
+        { label: "ปลาสีชมพูหายไป", hit: [225, 160, 30], base: fish(225, 160, "#FF85C8"), alt: "" },
+        {
+          label: "จำนวนฟองอากาศ", hit: [52, 150, 26],
+          base: `<g fill="none" stroke="#fff" stroke-width="2.5"><circle cx="52" cy="170" r="7"/><circle cx="60" cy="150" r="5"/><circle cx="48" cy="132" r="6"/></g>`,
+          alt: `<g fill="none" stroke="#fff" stroke-width="2.5"><circle cx="52" cy="170" r="7"/></g>`,
+        },
+        {
+          label: "แมงกะพรุนหายไป", hit: [172, 58, 28],
+          base: `<g><path d="M150 60 Q172 22 194 60 Z" fill="#C39BFF"/><path d="M156 60 q-4 10 0 20 M166 60 q4 10 0 22 M178 60 q-4 10 0 22 M188 60 q4 10 0 20" stroke="#C39BFF" stroke-width="3" fill="none"/></g>`,
+          alt: "",
+        },
+        { label: "สาหร่ายหายไป", hit: [124, 228, 26], base: `<path d="M124 258 Q114 240 124 222 Q134 206 124 192 M132 258 Q140 240 134 224" stroke="#2FB874" stroke-width="7" fill="none" stroke-linecap="round"/>`, alt: "" },
+        {
+          label: "หีบสมบัติเปิด/ปิด", hit: [300, 250, 30],
+          base: `<g><rect x="278" y="244" width="44" height="26" fill="#8B5A2B"/><path d="M278 244 Q300 226 322 244 Z" fill="#A0692E"/><rect x="297" y="248" width="6" height="8" fill="#FFD447"/></g>`,
+          alt: `<g><path d="M280 226 L320 226 L326 240 L276 240 Z" fill="#A0692E"/><circle cx="288" cy="243" r="6" fill="#FFD447"/><circle cx="300" cy="241" r="6" fill="#FFD447"/><circle cx="312" cy="243" r="6" fill="#FFD447"/><rect x="278" y="244" width="44" height="26" fill="#8B5A2B"/></g>`,
+        },
+        { label: "สีปลาดาว", hit: [200, 278, 18], base: star(200, 278, 14, 6, "#FF5A6E"), alt: star(200, 278, 14, 6, "#FFD447") },
+        {
+          label: "สีปู", hit: [62, 278, 22],
+          base: `<g fill="#FF5A6E"><ellipse cx="62" cy="282" rx="16" ry="10"/><circle cx="42" cy="272" r="6"/><circle cx="82" cy="272" r="6"/><circle cx="56" cy="270" r="3" fill="#fff"/><circle cx="68" cy="270" r="3" fill="#fff"/></g>`,
+          alt: `<g fill="#FF9F45"><ellipse cx="62" cy="282" rx="16" ry="10"/><circle cx="42" cy="272" r="6"/><circle cx="82" cy="272" r="6"/><circle cx="56" cy="270" r="3" fill="#fff"/><circle cx="68" cy="270" r="3" fill="#fff"/></g>`,
+        },
+        {
+          label: "สีปะการัง", hit: [370, 226, 26],
+          base: `<path d="M370 256 V226 M370 238 L356 222 M370 232 L384 214 M356 222 V210 M384 214 L392 206" stroke="#FF85C8" stroke-width="7" fill="none" stroke-linecap="round"/>`,
+          alt: `<path d="M370 256 V226 M370 238 L356 222 M370 232 L384 214 M356 222 V210 M384 214 L392 206" stroke="#FF9F45" stroke-width="7" fill="none" stroke-linecap="round"/>`,
+        },
+        { label: "เปลือกหอยหายไป", hit: [250, 284, 15], base: shell(250, 284), alt: "" },
+      ],
+    },
+    {
+      name: "อวกาศ", place: "ท้องฟ้า", thing: "ดาว", unit: "ดวง", emoji: "⭐",
+      parts: [
+        (() => {
+          // ดาวดวงเล็กตำแหน่งเดิมทุกครั้ง (สุ่มแบบกำหนดค่าเริ่มต้น)
+          let seed = 7;
+          const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+          const dots = Array.from({ length: 45 }, () => `<circle cx="${f(rnd() * 400)}" cy="${f(rnd() * 300)}" r="${f(0.8 + rnd() * 1.4)}" fill="#fff" opacity="${f(0.5 + rnd() * 0.5)}"/>`).join("");
+          return `<defs><linearGradient id="space-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140f3d"/><stop offset="1" stop-color="#3b2a7a"/></linearGradient></defs>
+                  <rect width="400" height="300" fill="url(#space-bg)"/>${dots}`;
+        })(),
+        {
+          label: "วงแหวนดาวเคราะห์", hit: [300, 90, 44],
+          base: `<g><circle cx="300" cy="90" r="30" fill="#FF9F45"/><path d="M276 82 Q300 74 324 84 M280 100 Q300 94 320 102" stroke="#E07B22" stroke-width="4" fill="none"/><ellipse cx="300" cy="92" rx="52" ry="12" fill="none" stroke="#FFE08A" stroke-width="5" transform="rotate(-15 300 92)"/></g>`,
+          alt: `<g><circle cx="300" cy="90" r="30" fill="#FF9F45"/><path d="M276 82 Q300 74 324 84 M280 100 Q300 94 320 102" stroke="#E07B22" stroke-width="4" fill="none"/></g>`,
+        },
+        {
+          label: "หลุมบนดวงจันทร์", hit: [70, 62, 32],
+          base: `<g><circle cx="70" cy="62" r="28" fill="#E6E6F0"/><circle cx="60" cy="54" r="6" fill="#c9c9d6"/><circle cx="80" cy="70" r="8" fill="#c9c9d6"/><circle cx="74" cy="48" r="4" fill="#c9c9d6"/></g>`,
+          alt: `<g><circle cx="70" cy="62" r="28" fill="#E6E6F0"/></g>`,
+        },
+        `<path d="M170 104 Q192 132 189 200 L151 200 Q148 132 170 104 Z" fill="#f2f2f7"/>
+         <path d="M151 176 L134 206 L152 200 Z M189 176 L206 206 L188 200 Z" fill="#f2506a"/>
+         <path d="M162 114 Q170 104 178 114 Z" fill="#f2506a"/>`,
+        { label: "สีหน้าต่างจรวด", hit: [170, 148, 16], base: `<circle cx="170" cy="148" r="10" fill="#4D8DFF" stroke="#9AA5B1" stroke-width="3"/>`, alt: `<circle cx="170" cy="148" r="10" fill="#f2506a" stroke="#9AA5B1" stroke-width="3"/>` },
+        { label: "ไฟท้ายจรวด", hit: [170, 222, 20], base: `<g><path d="M156 200 Q170 250 184 200 Z" fill="#FF9F45"/><path d="M162 200 Q170 230 178 200 Z" fill="#FFE066"/></g>`, alt: "" },
+        {
+          label: "สีไฟจานบิน", hit: [322, 210, 32],
+          base: `<g><ellipse cx="322" cy="200" rx="18" ry="14" fill="#9fe7ff"/><ellipse cx="322" cy="212" rx="44" ry="12" fill="#9AA5B1"/><circle cx="298" cy="214" r="4" fill="#FFE066"/><circle cx="322" cy="218" r="4" fill="#FFE066"/><circle cx="346" cy="214" r="4" fill="#FFE066"/></g>`,
+          alt: `<g><ellipse cx="322" cy="200" rx="18" ry="14" fill="#9fe7ff"/><ellipse cx="322" cy="212" rx="44" ry="12" fill="#9AA5B1"/><circle cx="298" cy="214" r="4" fill="#f2506a"/><circle cx="322" cy="218" r="4" fill="#f2506a"/><circle cx="346" cy="214" r="4" fill="#f2506a"/></g>`,
+        },
+        { label: "ดาวดวงใหญ่หายไป", hit: [240, 40, 20], base: star(240, 40, 14, 6, "#FFE066"), alt: "" },
+        { label: "ดาวหางหายไป", hit: [88, 172, 30], base: `<g><polygon points="98,160 36,192 44,200 102,172" fill="#fff" opacity=".45"/><circle cx="100" cy="166" r="9" fill="#fff"/></g>`, alt: "" },
+        { label: "สีดาวเคราะห์ดวงเล็ก", hit: [45, 255, 24], base: `<circle cx="45" cy="255" r="20" fill="#4D8DFF"/>`, alt: `<circle cx="45" cy="255" r="20" fill="#2FB874"/>` },
+        {
+          label: "ดาวเทียมหายไป", hit: [236, 256, 26],
+          base: `<g><rect x="228" y="248" width="16" height="16" fill="#cfd6de"/><rect x="204" y="251" width="22" height="10" fill="#4D8DFF"/><rect x="246" y="251" width="22" height="10" fill="#4D8DFF"/><line x1="236" y1="248" x2="236" y2="238" stroke="#cfd6de" stroke-width="2"/></g>`,
+          alt: "",
+        },
+      ],
+    },
+  ];
+
+  // ======================================================================
+  //  คำถามคณิตศาสตร์
+  // ======================================================================
+  const TIERS = [
+    { add: [1, 9], mul: [[1, 5], [1, 5]] },
+    { add: [2, 20], mul: [[2, 5], [2, 10]] },
+    { add: [10, 50], mul: [[2, 9], [2, 9]] },
+    { add: [20, 99], mul: [[3, 10], [2, 12]] },
+  ];
+
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function makeArithmetic(op, tier) {
+    if (op === "add") {
+      const a = randInt(...tier.add), b = randInt(...tier.add);
+      return { kind: "math", text: `${a} + ${b} = ?`, answer: a + b, trick: Math.abs(a - b) };
+    }
+    if (op === "sub") {
+      const x = randInt(...tier.add), y = randInt(...tier.add);
+      return { kind: "math", text: `${Math.max(x, y)} − ${Math.min(x, y)} = ?`, answer: Math.abs(x - y), trick: x + y };
+    }
+    if (op === "mul") {
+      const a = randInt(...tier.mul[0]), b = randInt(...tier.mul[1]);
+      return { kind: "math", text: `${a} × ${b} = ?`, answer: a * b, trick: a + b };
+    }
+    const d = randInt(Math.max(2, tier.mul[0][0]), tier.mul[0][1]), q = randInt(...tier.mul[1]);
+    return { kind: "math", text: `${d * q} ÷ ${d} = ?`, answer: q, trick: d * q - d };
+  }
+
+  // โจทย์ปัญหาตามฉากของด่านนั้น
+  function makeWordProblem(scene, tier) {
+    const { place, thing, unit, emoji } = scene;
+    const op = pick(["add", "sub", "mul", "div"]);
+    if (op === "add") {
+      const a = randInt(...tier.add), b = randInt(...tier.add);
+      return { kind: "word", pics: `${emoji} ➕ ${emoji}`, answer: a + b, trick: a + b + 10,
+        text: `ใน${place}มี${thing} ${a} ${unit} มีเพิ่มมาอีก ${b} ${unit} รวมมี${thing}กี่${unit}` };
+    }
+    if (op === "sub") {
+      const x = randInt(...tier.add), y = randInt(...tier.add);
+      const a = Math.max(x, y), b = Math.min(x, y);
+      return { kind: "word", pics: `${emoji} ➖ ${emoji}`, answer: a - b, trick: a + b,
+        text: `ใน${place}มี${thing} ${a} ${unit} หายไป ${b} ${unit} เหลือ${thing}กี่${unit}` };
+    }
+    if (op === "mul") {
+      const a = randInt(Math.max(2, tier.mul[0][0]), tier.mul[0][1]), b = randInt(...tier.mul[1]);
+      return { kind: "word", pics: `${emoji} ✖️ ${emoji}`, answer: a * b, trick: a + b,
+        text: `ใน${place}มี${thing} ${a} กลุ่ม กลุ่มละ ${b} ${unit} มี${thing}ทั้งหมดกี่${unit}` };
+    }
+    const groups = randInt(Math.max(2, tier.mul[0][0]), tier.mul[0][1]), each = randInt(...tier.mul[1]);
+    return { kind: "word", pics: `${emoji} ➗ ${emoji}`, answer: each, trick: each + groups,
+      text: `มี${thing} ${groups * each} ${unit} แบ่งเป็น ${groups} กลุ่มเท่า ๆ กัน ได้กลุ่มละกี่${unit}` };
+  }
+
+  function makeChoices(q) {
+    const set = new Set([q.answer]);
+    if (q.trick !== q.answer && q.trick >= 0 && Math.abs(q.trick - q.answer) <= Math.max(10, q.answer)) set.add(q.trick);
+    const spread = Math.max(3, Math.round(q.answer * 0.25));
+    while (set.size < 4) {
+      const v = q.answer + randInt(1, spread) * (Math.random() < 0.5 ? -1 : 1);
+      if (v >= 0) set.add(v);
+    }
+    return shuffle([...set]);
+  }
+
+  // 3 ข้อต่อด่าน: คำนวณ 2 ข้อ (คนละเครื่องหมาย) + โจทย์ปัญหาตามฉาก 1 ข้อ
+  function makeMathQuestions(levelIndex) {
+    const tierIndex = Math.min(TIERS.length - 1, state.difficulty + Math.floor(levelIndex / 2));
+    const tier = TIERS[tierIndex];
+    const wordTier = TIERS[Math.max(0, tierIndex - 1)];
+    const ops = shuffle(["add", "sub", "mul", "div"]).slice(0, 2);
+    const questions = ops.map((op) => makeArithmetic(op, tier));
+    questions.push(makeWordProblem(SCENES[levelIndex], wordTier));
+    questions.forEach((q) => (q.choices = makeChoices(q)));
+    return questions;
+  }
+
+  // ======================================================================
+  //  สถานะเกม
+  // ======================================================================
+  const DIFFS_PER_LEVEL = 5;
+  const state = {
+    difficulty: 0,
+    level: 0,
+    diffs: [],          // จุดต่างที่สุ่มได้ในด่านนี้
+    found: new Set(),
+    hintLeft: 1,
+    cooldown: false,
+    wrongClicks: 0,
+    mathMistakes: 0,
+    hintsUsed: 0,
+    findTime: 0,        // เวลารวมที่ใช้หาจุดต่าง (ms)
+    levelStart: 0,
+    timerId: null,
+    math: null,         // { questions, index, locked }
+    soundOn: true,
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // ---------- เสียง ----------
+  let audioCtx = null;
+  function tone(freq, dur, { type = "sine", vol = 0.2, delay = 0 } = {}) {
+    if (!state.soundOn) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.05);
+    } catch (e) {}
+  }
+  const sounds = {
+    found() { tone(784, 0.12); tone(1047, 0.2, { delay: 0.1 }); },
+    wrong() { tone(200, 0.25, { type: "triangle" }); },
+    hint() { tone(988, 0.1, { type: "triangle" }); tone(988, 0.1, { type: "triangle", delay: 0.15 }); },
+    levelDone() { [523, 659, 784, 1047].forEach((fq, i) => tone(fq, 0.22, { type: "triangle", delay: i * 0.12 })); },
+    correct() { tone(660, 0.12); tone(880, 0.2, { delay: 0.1 }); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((fq, i) => tone(fq, 0.26, { type: "triangle", delay: i * 0.14 })); },
+  };
+
+  function toast(text, ms = 1600) {
+    document.querySelectorAll(".toast").forEach((t) => t.remove());
+    const t = el("div", "toast", text);
+    document.body.append(t);
+    setTimeout(() => t.remove(), ms);
+  }
+
+  function confetti(count = 90) {
+    const colors = ["#ff7a59", "#ffc93c", "#2fb874", "#4d8dff", "#9a6cff", "#f2506a"];
+    for (let i = 0; i < count; i++) {
+      const piece = el("div", "confetti");
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.background = pick(colors);
+      piece.style.animationDuration = `${2 + Math.random() * 2}s`;
+      piece.style.animationDelay = `${Math.random() * 0.6}s`;
+      document.body.append(piece);
+      setTimeout(() => piece.remove(), 5000);
+    }
+  }
+
+  function showScreen(id) {
+    ["start-screen", "game-screen", "final-screen"].forEach((s) => $(s).classList.toggle("hidden", s !== id));
+    window.scrollTo(0, 0);
+  }
+
+  // ======================================================================
+  //  วาดภาพและจัดการการแตะ
+  // ======================================================================
+  function sceneSVG(scene, modified) {
+    const body = scene.parts.map((part) => {
+      if (typeof part === "string") return part;
+      return modified && state.diffs.includes(part) ? part.alt : part.base;
+    }).join("");
+    return `<svg viewBox="0 0 400 300" role="img" aria-label="ภาพ${scene.name}">${body}<g class="marks"></g></svg>`;
+  }
+
+  function svgPoint(svg, evt) {
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  function addMark(markup) {
+    document.querySelectorAll(".pic .marks").forEach((g) => g.insertAdjacentHTML("beforeend", markup));
+  }
+
+  function onPicClick(evt) {
+    if (state.cooldown || !$("math-modal").classList.contains("hidden")) return;
+    if (state.found.size >= DIFFS_PER_LEVEL) return;
+    const svg = evt.currentTarget.querySelector("svg");
+    const p = svgPoint(svg, evt);
+    const dist = (d) => Math.hypot(p.x - d.hit[0], p.y - d.hit[1]);
+
+    // จุดที่ยังไม่เจอ ที่อยู่ใกล้ที่สุด (เผื่อระยะให้เด็กแตะง่ายขึ้นอีก 8 หน่วย)
+    const candidates = state.diffs
+      .filter((d) => !state.found.has(d) && dist(d) <= d.hit[2] + 8)
+      .sort((a, b) => dist(a) - dist(b));
+    if (candidates.length) return foundDiff(candidates[0]);
+
+    // แตะซ้ำจุดที่เจอแล้ว ไม่นับว่าผิด
+    if (state.diffs.some((d) => state.found.has(d) && dist(d) <= d.hit[2] + 8)) return;
+
+    wrongClick(p);
+  }
+
+  function foundDiff(d) {
+    state.found.add(d);
+    const [x, y, r] = d.hit;
+    document.querySelectorAll(".hint-mark").forEach((m) => m.remove());
+    addMark(`<circle class="found-mark" cx="${x}" cy="${y}" r="${r}"/>`);
+    sounds.found();
+    $("found-list").append(el("span", "", `✅ ${d.label}`));
+    renderStatus();
+    if (state.found.size === DIFFS_PER_LEVEL) levelFound();
+    else toast(`เจอแล้ว! ${d.label} 👍`, 1200);
+  }
+
+  function wrongClick(p) {
+    state.wrongClicks++;
+    sounds.wrong();
+    addMark(`<text class="wrong-mark" x="${f(p.x)}" y="${f(p.y)}">✕</text>`);
+    setTimeout(() => document.querySelectorAll(".wrong-mark").forEach((m) => m.remove()), 800);
+    renderStatus();
+    // หน่วงเวลานิดหน่อย กันการแตะมั่วรัว ๆ
+    state.cooldown = true;
+    document.querySelectorAll(".pic").forEach((p) => p.classList.add("cooldown"));
+    setTimeout(() => {
+      state.cooldown = false;
+      document.querySelectorAll(".pic").forEach((p) => p.classList.remove("cooldown"));
+    }, 600);
+  }
+
+  function useHint() {
+    if (state.hintLeft <= 0 || state.found.size >= DIFFS_PER_LEVEL) return;
+    const remaining = state.diffs.filter((d) => !state.found.has(d));
+    const d = pick(remaining);
+    state.hintLeft--;
+    state.hintsUsed++;
+    sounds.hint();
+    document.querySelectorAll(".hint-mark").forEach((m) => m.remove());
+    addMark(`<circle class="hint-mark" cx="${d.hit[0]}" cy="${d.hit[1]}" r="${d.hit[2] + 6}"/>`);
+    setTimeout(() => document.querySelectorAll(".hint-mark").forEach((m) => m.remove()), 2500);
+    toast("💡 ลองดูตรงวงสีเหลืองนะ", 1500);
+    renderStatus();
+  }
+
+  function renderStatus() {
+    const dots = $("found-dots");
+    dots.innerHTML = "🔍 ";
+    for (let i = 0; i < DIFFS_PER_LEVEL; i++) dots.append(el("i", i < state.found.size ? "on" : "", i < state.found.size ? "✓" : ""));
+    dots.append(` ${state.found.size}/${DIFFS_PER_LEVEL}`);
+    $("wrong-count").textContent = `❌ แตะผิด ${state.wrongClicks}`;
+    $("hint-btn").textContent = `💡 คำใบ้ (${state.hintLeft})`;
+    $("hint-btn").disabled = state.hintLeft <= 0 || state.found.size >= DIFFS_PER_LEVEL;
+  }
+
+  // ---------- เวลา ----------
+  const fmt = (ms) => {
+    const s = Math.floor(ms / 1000);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  };
+  function startTimer() {
+    clearInterval(state.timerId);
+    state.levelStart = Date.now();
+    $("timer").textContent = "⏱️ 0:00";
+    state.timerId = setInterval(() => ($("timer").textContent = `⏱️ ${fmt(Date.now() - state.levelStart)}`), 500);
+  }
+  function stopTimer() {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+
+  // ======================================================================
+  //  ลำดับการเล่น
+  // ======================================================================
+  function startGame() {
+    Object.assign(state, { level: 0, wrongClicks: 0, mathMistakes: 0, hintsUsed: 0, findTime: 0 });
+    showScreen("game-screen");
+    startLevel(0);
+  }
+
+  function startLevel(index) {
+    const scene = SCENES[index];
+    state.level = index;
+    state.found = new Set();
+    state.hintLeft = 1;
+    state.cooldown = false;
+    const candidates = scene.parts.filter((p) => typeof p !== "string");
+    state.diffs = shuffle([...candidates]).slice(0, DIFFS_PER_LEVEL);
+
+    $("level-name").textContent = `ด่าน ${index + 1}/${SCENES.length} · ${scene.name}`;
+    $("pic-a").innerHTML = sceneSVG(scene, false);
+    $("pic-b").innerHTML = sceneSVG(scene, true);
+    $("found-list").innerHTML = "";
+    renderStatus();
+    startTimer();
+    toast(`ด่าน ${index + 1}: ${scene.name} — หาจุดต่าง 5 จุด!`, 1800);
+  }
+
+  function levelFound() {
+    stopTimer();
+    state.findTime += Date.now() - state.levelStart;
+    sounds.levelDone();
+    confetti(70);
+    toast("🎉 หาครบ 5 จุดแล้ว! เก่งมาก", 1600);
+    setTimeout(() => openMath(), 1500);
+  }
+
+  // ---------- คำถามคณิต ----------
+  function openMath() {
+    state.math = { questions: makeMathQuestions(state.level), index: 0, locked: false };
+    const last = state.level === SCENES.length - 1;
+    $("m-sub").textContent = last ? "ตอบให้ถูก 3 ข้อ เพื่อจบเกม!" : "ตอบให้ถูก 3 ข้อ ก่อนไปด่านต่อไป";
+    $("math-modal").classList.remove("hidden");
+    showMathQuestion();
+  }
+
+  function renderMathDots() {
+    const box = $("m-dots");
+    box.innerHTML = "";
+    state.math.questions.forEach((_, i) => {
+      const dot = el("span", i < state.math.index ? "done" : i === state.math.index ? "now" : "", i < state.math.index ? "✓" : String(i + 1));
+      box.append(dot);
+    });
+  }
+
+  function showMathQuestion() {
+    const m = state.math;
+    const q = m.questions[m.index];
+    m.locked = false;
+    renderMathDots();
+    const box = $("m-q");
+    box.className = `m-q ${q.kind}`;
+    box.textContent = "";
+    if (q.kind === "word") box.append(el("span", "pics", q.pics));
+    box.append(q.text);
+
+    const choices = $("m-choices");
+    choices.innerHTML = "";
+    choices.classList.remove("hidden");
+    q.choices.forEach((value) => {
+      const btn = el("button", "btn choice", String(value));
+      btn.addEventListener("click", () => answerMath(btn, value));
+      choices.append(btn);
+    });
+    $("m-feedback").textContent = "";
+    $("m-feedback").className = "feedback";
+    $("m-next").classList.add("hidden");
+  }
+
+  function answerMath(btn, value) {
+    const m = state.math;
+    if (m.locked || btn.disabled) return;
+    const q = m.questions[m.index];
+    if (value === q.answer) {
+      m.locked = true;
+      btn.classList.add("correct");
+      document.querySelectorAll(".choice").forEach((b) => (b.disabled = true));
+      $("m-feedback").textContent = "ถูกต้อง! 🎉";
+      $("m-feedback").className = "feedback good";
+      sounds.correct();
+      setTimeout(() => {
+        m.index++;
+        if (m.index < m.questions.length) return showMathQuestion();
+        renderMathDots();
+        $("m-q").className = "m-q word";
+        $("m-q").textContent = "✅ ตอบถูกครบ 3 ข้อแล้ว!";
+        $("m-choices").classList.add("hidden");
+        $("m-feedback").textContent = "";
+        const last = state.level === SCENES.length - 1;
+        $("m-next").textContent = last ? "🏆 ดูผลรางวัล" : `ไปด่านที่ ${state.level + 2} ▶`;
+        $("m-next").classList.remove("hidden");
+      }, 900);
+    } else {
+      state.mathMistakes++;
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      $("m-feedback").textContent = "ยังไม่ถูก ลองใหม่นะ 💪";
+      $("m-feedback").className = "feedback bad";
+      sounds.wrong();
+    }
+  }
+
+  function nextAfterMath() {
+    $("math-modal").classList.add("hidden");
+    if (state.level < SCENES.length - 1) startLevel(state.level + 1);
+    else showFinal();
+  }
+
+  function showFinal() {
+    const penalty = state.wrongClicks + state.mathMistakes + state.hintsUsed * 2;
+    const stars = penalty <= 4 ? 3 : penalty <= 10 ? 2 : 1;
+    $("f-stars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "" : "off"}">⭐</span>`).join("");
+    $("f-time").textContent = fmt(state.findTime);
+    $("f-wrong").textContent = `${state.wrongClicks} ครั้ง`;
+    $("f-math").textContent = `${state.mathMistakes} ครั้ง`;
+    $("f-hint").textContent = `${state.hintsUsed} ครั้ง`;
+    showScreen("final-screen");
+    sounds.win();
+    confetti(140);
+  }
+
+  function goHome() {
+    stopTimer();
+    $("math-modal").classList.add("hidden");
+    showScreen("start-screen");
+  }
+
+  // ---------- ปุ่มต่าง ๆ ----------
+  function renderDifficulty() {
+    document.querySelectorAll("#difficulty .option").forEach((b) =>
+      b.classList.toggle("selected", Number(b.dataset.level) === state.difficulty)
+    );
+  }
+  document.querySelectorAll("#difficulty .option").forEach((b) =>
+    b.addEventListener("click", () => {
+      state.difficulty = Number(b.dataset.level);
+      try { localStorage.setItem("spot-diff-level", state.difficulty); } catch (e) {}
+      renderDifficulty();
+    })
+  );
+  $("pic-a").addEventListener("click", onPicClick);
+  $("pic-b").addEventListener("click", onPicClick);
+  $("start-btn").addEventListener("click", startGame);
+  $("hint-btn").addEventListener("click", useHint);
+  $("m-next").addEventListener("click", nextAfterMath);
+  $("home-btn").addEventListener("click", goHome);
+  $("menu-btn").addEventListener("click", goHome);
+  $("again-btn").addEventListener("click", startGame);
+  $("sound-btn").addEventListener("click", () => {
+    state.soundOn = !state.soundOn;
+    $("sound-btn").textContent = state.soundOn ? "🔊" : "🔇";
+  });
+
+  // คีย์บอร์ดในหน้าคำถามคณิต: 1–4 เลือกคำตอบ, Enter ไปต่อ
+  document.addEventListener("keydown", (e) => {
+    if ($("math-modal").classList.contains("hidden")) return;
+    if (e.key === "Enter" && !$("m-next").classList.contains("hidden")) return $("m-next").click();
+    const btn = document.querySelectorAll(".choice")[Number(e.key) - 1];
+    if (btn) btn.click();
+  });
+
+  try {
+    const saved = Number(localStorage.getItem("spot-diff-level"));
+    if ([0, 1, 2].includes(saved)) state.difficulty = saved;
+  } catch (e) {}
+  renderDifficulty();
+</script>
+</body>
+</html>

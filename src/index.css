@@ -1,0 +1,302 @@
+:root {
+  --bg1: #ffe7f1;
+  --bg2: #d8f1ff;
+  --card: #ffffff;
+  --ink: #33295a;
+  --muted: #6d6590;
+  --primary: #ff7a59;
+  --green: #2fb874;
+  --yellow: #ffc93c;
+  --soft: #f2effb;
+  --line: #e4def6;
+  --shadow: 0 8px 0 rgba(51, 41, 90, 0.12);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: "Leelawadee UI", "Segoe UI", "Tahoma", "Noto Sans Thai", sans-serif;
+  color: var(--ink);
+  background: linear-gradient(160deg, var(--bg1), var(--bg2)) fixed;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a { color: inherit; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #fff;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16);
+}
+
+/* ---------- หน้าแรก ---------- */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.logo-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.hero {
+  text-align: center;
+  padding: 24px 8px 18px;
+}
+.hero h1 {
+  font-size: clamp(28px, 6vw, 44px);
+  line-height: 1.3;
+}
+.hero p {
+  max-width: 620px;
+  margin: 8px auto 18px;
+  font-size: clamp(16px, 3.6vw, 19px);
+  color: var(--muted);
+}
+.search {
+  width: min(100%, 520px);
+  font-family: inherit;
+  font-size: 18px;
+  padding: 12px 18px;
+  border: 3px solid var(--line);
+  border-radius: 99px;
+  background: var(--card);
+  color: var(--ink);
+  outline: none;
+}
+.search:focus { border-color: #4d8dff; }
+
+.recent { margin-bottom: 16px; }
+.recent h2, .site-footer { font-size: 17px; }
+.recent h2 { margin-bottom: 8px; }
+.recent-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.recent-item {
+  background: var(--card);
+  border-left: 6px solid var(--accent);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.chip {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.06);
+}
+.chip.selected {
+  background: #fff4d1;
+  border-color: var(--yellow);
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 20px;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow), 0 16px 30px rgba(0, 0, 0, 0.06);
+  border-top: 6px solid var(--accent);
+  transition: transform 0.15s;
+}
+.game-card:hover { transform: translateY(-4px); }
+
+.thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  background: color-mix(in srgb, var(--accent) 18%, white);
+  overflow: hidden;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+.thumb-emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 84px;
+}
+.grade {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--card);
+  border-radius: 99px;
+  padding: 3px 12px;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px 18px;
+}
+.card-body h3 { font-size: 21px; line-height: 1.35; }
+.card-body p { color: var(--muted); font-size: 16px; line-height: 1.55; flex: 1; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+.tags li {
+  background: var(--soft);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.play-btn {
+  background: var(--accent, var(--primary));
+  font-size: 19px;
+  padding: 12px;
+}
+
+.empty {
+  text-align: center;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 40px 0;
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 32px;
+}
+
+/* ---------- หน้าเล่นเกม ---------- */
+.play-page {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.play-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--card);
+  border-bottom: 5px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+.play-bar h1 {
+  flex: 1;
+  min-width: 0;
+  font-size: clamp(16px, 4vw, 21px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.bar-btn {
+  background: var(--soft);
+  color: var(--ink);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+  font-size: 16px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.stage {
+  flex: 1;
+  min-height: 0;
+  background: #fff;
+}
+.stage iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* ---------- ไม่พบหน้า ---------- */
+.not-found {
+  text-align: center;
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 40px 20px;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.not-found .big-emoji { font-size: 72px; }
+.not-found p { color: var(--muted); }
+.not-found .play-btn { padding: 12px 24px; }
+
+@media (max-width: 520px) {
+  .hide-sm { display: none; }
+  .game-grid { grid-template-columns: 1fr; }
+}
