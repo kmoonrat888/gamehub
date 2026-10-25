@@ -1,6 +1,8 @@
 :root {
-  --bg1: #ffe7f1;
-  --bg2: #d8f1ff;
+  /* พื้นหลังโทนเย็น: ฟ้าลาเวนเดอร์ → ฟ้าอ่อน → เขียวมิ้นต์ */
+  --bg1: #dfe5ff;
+  --bg2: #d3efff;
+  --bg3: #d2f5ec;
   --card: #ffffff;
   --ink: #33295a;
   --muted: #6d6590;
@@ -19,7 +21,7 @@ body {
   min-height: 100vh;
   font-family: "Leelawadee UI", "Segoe UI", "Tahoma", "Noto Sans Thai", sans-serif;
   color: var(--ink);
-  background: linear-gradient(160deg, var(--bg1), var(--bg2)) fixed;
+  background: linear-gradient(160deg, var(--bg1), var(--bg2) 50%, var(--bg3)) fixed;
   -webkit-tap-highlight-color: transparent;
 }
 
