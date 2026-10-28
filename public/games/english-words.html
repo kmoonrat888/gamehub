@@ -262,6 +262,38 @@
   .stars .off { filter: grayscale(1); opacity: 0.3; }
   .result-score { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
   .result-msg { font-size: 19px; margin-bottom: 18px; }
+  /* ตารางคำศัพท์ทั้งหมด (หน้าตั้งค่า) */
+  .vocab { margin-top: 26px; text-align: left; }
+  .vocab-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 4px 10px;
+  }
+  .vocab-head .setting-label { margin: 0; }
+  .vocab-head small { font-size: 14px; color: var(--muted); font-weight: 700; }
+  .vocab-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+  .vocab-table th {
+    font-size: 14px;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 8px;
+  }
+  .vocab-table td {
+    background: #faf8ff;
+    padding: 6px 8px;
+    vertical-align: middle;
+  }
+  .vocab-table td:first-child { border-radius: 16px 0 0 16px; width: 76px; }
+  .vocab-table td:last-child { border-radius: 0 16px 16px 0; width: 56px; text-align: right; }
+  .vocab-table tr.playing td { background: #fff4d1; }
+  .vocab-table .v-pic { width: 64px; height: 64px; border-radius: 12px; background: #fff; overflow: hidden; }
+  .vocab-table .v-pic .pic-emoji { font-size: 30px; }
+  .vocab-table .v-word { font-size: 19px; font-weight: 800; overflow-wrap: anywhere; }
+  .vocab-table .v-th { font-size: 16px; font-weight: 600; color: var(--purple); }
+  .vocab-table .v-ex { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+  .vocab-table .speak-btn { font-size: 18px; padding: 8px 11px; }
   .review { text-align: left; background: #faf8ff; border-radius: 20px; padding: 14px; margin-bottom: 20px; }
   .review h2 { font-size: 19px; margin-bottom: 8px; text-align: center; }
   .review-row {
@@ -318,6 +350,7 @@
     <div id="settings"></div>
     <p class="net-note">📷 ใช้รูปถ่ายจริง ต้องต่ออินเทอร์เน็ต (ถ้าไม่มีเน็ตจะแสดงรูปวาดแทน)</p>
     <button class="btn start-btn" id="start-btn">▶️ เริ่มเล่น</button>
+    <div class="vocab" id="vocab"></div>
   </section>
 
   <!-- หน้าเล่นเกม -->
@@ -556,10 +589,90 @@
   //  group = คำที่ภาพหรือความหมายคล้ายกัน จะไม่อยู่เป็นตัวเลือกในข้อเดียวกัน
   // ======================================================================
   const CATEGORIES = {
+    animals: {
+      title: "สัตว์", en: "Animals",
+      emoji: "🐼",
+      subtitle: "คำศัพท์สัตว์ 70 คำ",
+      picQuestion: "สัตว์ตัวนี้ภาษาอังกฤษคืออะไร?",
+      wordQuestion: "คำนี้คือสัตว์ตัวไหน?",
+      pic: verbPic,
+      words: [
+        { word: "cat", th: "แมว", pic: "🐱", group: "cat" },
+        { word: "dog", th: "สุนัข", pic: "🐶", group: "canine" },
+        { word: "cow", th: "วัว", pic: "🐮", group: "cattle" },
+        { word: "pig", th: "หมู", pic: "🐷", group: "pig" },
+        { word: "duck", th: "เป็ด", pic: "🦆", group: "water-bird" },
+        { word: "fish", th: "ปลา", pic: "🐟" },
+        { word: "bird", th: "นก", pic: "🐦", group: "small-bird" },
+        { word: "chicken", th: "ไก่", pic: "🐔", group: "fowl" },
+        { word: "ant", th: "มด", pic: "🐜", group: "small-bug" },
+        { word: "bee", th: "ผึ้ง", pic: "🐝", group: "insect-fly" },
+        { word: "frog", th: "กบ", pic: "🐸" },
+        { word: "lion", th: "สิงโต", pic: "🦁", group: "big-cat" },
+        { word: "bear", th: "หมี", pic: "🐻" },
+        { word: "fox", th: "สุนัขจิ้งจอก", pic: "🦊", group: "canine" },
+        { word: "goat", th: "แพะ", pic: "🐐", group: "goat" },
+        { word: "sheep", th: "แกะ", pic: "🐑", group: "goat" },
+        { word: "horse", th: "ม้า", pic: "🐴", group: "horse" },
+        { word: "mouse", th: "หนู", pic: "🐭", group: "rodent" },
+        { word: "rabbit", th: "กระต่าย", pic: "🐰", group: "rodent" },
+        { word: "monkey", th: "ลิง", pic: "🐵", group: "ape" },
+        { word: "tiger", th: "เสือ", pic: "🐯", group: "big-cat" },
+        { word: "owl", th: "นกฮูก", pic: "🦉" },
+        { word: "bat", th: "ค้างคาว", pic: "🦇" },
+        { word: "snake", th: "งู", pic: "🐍" },
+        { word: "elephant", th: "ช้าง", pic: "🐘" },
+        { word: "giraffe", th: "ยีราฟ", pic: "🦒" },
+        { word: "zebra", th: "ม้าลาย", pic: "🦓", group: "horse" },
+        { word: "panda", th: "แพนด้า", pic: "🐼" },
+        { word: "koala", th: "โคอาลา", pic: "🐨" },
+        { word: "camel", th: "อูฐ", pic: "🐫", group: "goat" },
+        { word: "turtle", th: "เต่า", pic: "🐢" },
+        { word: "whale", th: "ปลาวาฬ", pic: "🐳", group: "sea" },
+        { word: "dolphin", th: "โลมา", pic: "🐬", group: "sea" },
+        { word: "shark", th: "ฉลาม", pic: "🦈", group: "sea" },
+        { word: "octopus", th: "ปลาหมึกยักษ์", pic: "🐙", group: "tentacle" },
+        { word: "crab", th: "ปู", pic: "🦀", group: "shell" },
+        { word: "snail", th: "หอยทาก", pic: "🐌" },
+        { word: "spider", th: "แมงมุม", pic: "🕷️" },
+        { word: "butterfly", th: "ผีเสื้อ", pic: "🦋", group: "bug" },
+        { word: "penguin", th: "เพนกวิน", pic: "🐧" },
+        { word: "eagle", th: "นกอินทรี", pic: "🦅" },
+        { word: "wolf", th: "หมาป่า", pic: "🐺", group: "canine" },
+        { word: "deer", th: "กวาง", pic: "🦌" },
+        { word: "rooster", th: "ไก่ตัวผู้", pic: "🐓", group: "fowl" },
+        { word: "squirrel", th: "กระรอก", pic: "🐿️", group: "rodent" },
+        { word: "hedgehog", th: "เม่นแคระ", pic: "🦔", group: "rodent" },
+        { word: "lizard", th: "กิ้งก่า", pic: "🦎", group: "reptile" },
+        { word: "shrimp", th: "กุ้ง", pic: "🦐", group: "shell" },
+        { word: "hippopotamus", th: "ฮิปโปโปเตมัส", pic: "🦛" },
+        { word: "rhinoceros", th: "แรด", pic: "🦏" },
+        { word: "crocodile", th: "จระเข้", pic: "🐊", group: "reptile" },
+        { word: "kangaroo", th: "จิงโจ้", pic: "🦘" },
+        { word: "gorilla", th: "กอริลลา", pic: "🦍", group: "ape" },
+        { word: "peacock", th: "นกยูง", pic: "🦚" },
+        { word: "parrot", th: "นกแก้ว", pic: "🦜" },
+        { word: "swan", th: "หงส์", pic: "🦢", group: "water-bird" },
+        { word: "llama", th: "ลามะ", pic: "🦙", group: "goat" },
+        { word: "raccoon", th: "แรคคูน", pic: "🦝", group: "rodent" },
+        { word: "lobster", th: "กุ้งมังกร", pic: "🦞", group: "shell" },
+        { word: "mosquito", th: "ยุง", pic: "🦟", group: "insect-fly" },
+        { word: "scorpion", th: "แมงป่อง", pic: "🦂" },
+        { word: "caterpillar", th: "หนอนผีเสื้อ", pic: "🐛", group: "bug" },
+        { word: "ladybug", th: "เต่าทอง", pic: "🐞", group: "small-bug" },
+        { word: "squid", th: "ปลาหมึก", pic: "🦑", group: "tentacle" },
+        { word: "boar", th: "หมูป่า", pic: "🐗", group: "pig" },
+        { word: "cricket", th: "จิ้งหรีด", pic: "🦗", group: "small-bug" },
+        { word: "turkey", th: "ไก่งวง", pic: "🦃", group: "fowl" },
+        { word: "leopard", th: "เสือดาว", pic: "🐆", group: "big-cat" },
+        { word: "buffalo", th: "ควาย", pic: "🐃", group: "cattle" },
+        { word: "dove", th: "นกพิราบ", pic: "🕊️", group: "small-bird" },
+      ],
+    },
     colors: {
-      title: "สีภาษาอังกฤษ",
+      title: "สี", en: "Colors",
       emoji: "🎨",
-      subtitle: "Colors — ทายชื่อสีเป็นภาษาอังกฤษ 13 คำ",
+      subtitle: "ทายชื่อสีเป็นภาษาอังกฤษ 13 คำ",
       picQuestion: "สีนี้ภาษาอังกฤษคืออะไร?",
       wordQuestion: "คำนี้คือสีไหน?",
       pic: colorPic,
@@ -581,9 +694,9 @@
     },
 
     body: {
-      title: "ร่างกายภาษาอังกฤษ",
+      title: "ร่างกาย", en: "Body Parts",
       emoji: "🙆",
-      subtitle: "Body Parts — ส่วนต่าง ๆ ของร่างกาย 51 คำ",
+      subtitle: "ส่วนต่าง ๆ ของร่างกาย 51 คำ",
       picQuestion: "ส่วนที่ลูกศรชี้ ภาษาอังกฤษคืออะไร?",
       wordQuestion: "คำนี้คือส่วนไหนของร่างกาย?",
       pic: bodyPic,
@@ -644,9 +757,9 @@
     },
 
     verbs: {
-      title: "คำกริยาภาษาอังกฤษ",
+      title: "คำกริยา", en: "Verbs",
       emoji: "🏃",
-      subtitle: "Verbs — คำกริยาที่ใช้บ่อย 27 คำ",
+      subtitle: "คำกริยาที่ใช้บ่อย 27 คำ",
       picQuestion: "ภาพนี้คือคำกริยาอะไร?",
       wordQuestion: "คำนี้คือภาพไหน?",
       pic: verbPic,
@@ -658,7 +771,7 @@
         { word: "walk", th: "เดิน", pic: "🚶🌳", group: "move", example: "We walk in the park.", exampleTh: "พวกเราเดินในสวน" },
         { word: "jump", th: "กระโดด", pic: "🐸⤴️", example: "The frog can jump.", exampleTh: "กบกระโดดได้" },
         { word: "eat", th: "กิน", pic: "😋🍚", group: "food", example: "I eat rice.", exampleTh: "ฉันกินข้าว" },
-        { word: "drink", th: "ดื่ม", pic: "🥛😊", group: "food", example: "I drink milk.", exampleTh: "ฉันดื่มนม" },
+        { word: "drink", th: "ดื่ม", pic: "🥛😊", group: "food", example: "I drink water.", exampleTh: "ฉันดื่มน้ำ" },
         { word: "sleep", th: "นอนหลับ", pic: "😴🛏️", example: "I sleep at night.", exampleTh: "ฉันนอนหลับตอนกลางคืน" },
         // ความคิดและความรู้สึก
         { word: "know", th: "รู้ / รู้จัก", pic: "💡✔️", group: "mind", example: "I know the answer.", exampleTh: "ฉันรู้คำตอบ" },
@@ -686,9 +799,9 @@
     },
 
     home: {
-      title: "ของใช้ในบ้านภาษาอังกฤษ",
+      title: "ของใช้ในบ้าน", en: "Things at Home",
       emoji: "🏠",
-      subtitle: "Things at Home — ของใช้ภายในบ้าน 54 คำ",
+      subtitle: "ของใช้ภายในบ้าน 54 คำ",
       picQuestion: "สิ่งนี้ภาษาอังกฤษคืออะไร?",
       wordQuestion: "คำนี้คือรูปไหน?",
       pic: verbPic,
@@ -761,6 +874,79 @@
   //  ถ้าโหลดไม่ได้ (ไม่มีอินเทอร์เน็ต) จะใช้รูปวาด/emoji ด้านบนแทน
   // ======================================================================
   const PHOTOS = {
+    // สัตว์: รูปเดียวกับเกมทายศัพท์สัตว์เดิม (เก็บแค่ path)
+    animals: {
+      "cat": ["2/25/Siam_lilacpoint.jpg"],
+      "dog": ["7/7a/Huskiesatrest.jpg"],
+      "cow": ["8/8c/Cow_%28Fleckvieh_breed%29_Oeschinensee_Slaunger_2009-07-07.jpg"],
+      "pig": ["3/3e/Pig_farm_Vampula_1.jpg"],
+      "duck": ["b/bf/Anas_platyrhynchos_male_female_quadrat.jpg"],
+      "fish": ["6/65/Gold_fish1.jpg"],
+      "bird": ["9/9b/House_sparrow_male_in_Prospect_Park_%2853532%29.jpg"],
+      "chicken": ["8/84/Male_and_female_chicken_sitting_together.jpg"],
+      "ant": ["d/db/Red_Ant_-_March_2025.jpg"],
+      "bee": ["4/4d/Apis_mellifera_Western_honey_bee.jpg"],
+      "frog": ["f/f5/Red-eyed_Leaf_Frog_%2849661076226%29.jpg"],
+      "lion": ["a/a6/020_The_lion_king_Snyggve_in_the_Serengeti_National_Park_Photo_by_Giles_Laurent.jpg"],
+      "bear": ["7/71/2010-kodiak-bear-1.jpg"],
+      "fox": ["d/d2/Portrait_of_a_red_fox_in_Rautas_fj%C3%A4llurskog_%28cropped%29.jpg"],
+      "goat": ["b/b2/Hausziege_04.jpg"],
+      "sheep": ["2/2c/Flock_of_sheep.jpg"],
+      "horse": ["d/de/Nokota_Horses_cropped.jpg"],
+      "mouse": ["https://upload.wikimedia.org/wikipedia/commons/8/8f/Mouse_white_background.jpg"],
+      "rabbit": ["5/5f/Oryctolagus_cuniculus_-_euqirneto_-_419737670_%28cropped%29.jpeg"],
+      "monkey": ["d/d6/Rhesus_macaque_%28Macaca_mulatta_mulatta%29%2C_male%2C_Gokarna.jpg"],
+      "tiger": ["b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg"],
+      "owl": ["9/9e/American_Barn_Owl_%28Tyto_furcata_guatemalae%29%2C_Orange_Walk.jpg"],
+      "bat": ["7/77/Big-eared-townsend-fledermaus.jpg"],
+      "snake": ["6/60/Trimeresurus_sabahi_fucatus%2C_Banded_pit_viper_-_Takua_Pa_District%2C_Phang-nga_Province_%2846710893582%29.jpg"],
+      "elephant": ["3/37/African_Bush_Elephant.jpg"],
+      "giraffe": ["9/9e/Giraffe_Mikumi_National_Park.jpg"],
+      "zebra": ["4/45/Equus_quagga_burchellii_-_Etosha%2C_2014.jpg"],
+      "panda": ["0/0f/Grosser_Panda.JPG"],
+      "koala": ["4/49/Koala_climbing_tree.jpg"],
+      "camel": ["5/5e/Camelus_bactrianus_%2855026866188%29.jpg"],
+      "turtle": ["9/96/RedEaredSlider05.jpg"],
+      "whale": ["d/d7/Humpback_whale_breaching_off_Cabo_San_Lucas.jpg"],
+      "dolphin": ["b/bc/Tursiops_truncatus_01-cropped.jpg"],
+      "shark": ["5/56/White_shark.jpg"],
+      "octopus": ["0/0b/Enteroctopus_dolfeini.jpg"],
+      "crab": ["7/71/Cancer_pagurus.jpg"],
+      "snail": ["c/cc/Snail.jpg"],
+      "spider": ["f/f3/Araneus_diadematus_%28Clerck%2C_1757%29.JPG"],
+      "butterfly": ["3/3d/Fesoj_-_Papilio_machaon_%28by%29.jpg"],
+      "penguin": ["a/a3/Aptenodytes_forsteri_-Snow_Hill_Island%2C_Antarctica_-adults_and_juvenile-8.jpg"],
+      "eagle": ["d/db/Bald_eagle_about_to_fly_in_Alaska_%282016%29.jpg"],
+      "wolf": ["6/68/Eurasian_wolf_2.jpg"],
+      "deer": ["b/b7/White-tailed_deer.jpg"],
+      "rooster": ["2/23/Red_jungle_fowl.png"],
+      "squirrel": ["1/15/EasternGraySquirrel_GAm.jpg"],
+      "hedgehog": ["7/72/Igel.JPG"],
+      "lizard": ["0/0a/Hemidactylus_platyurus_%28Flat-tailed_House_Gecko%29_on_white_background%2C_focus_stacking.jpg"],
+      "shrimp": ["2/2e/CSIRO_ScienceImage_2992_The_Giant_Tiger_Prawn.jpg"],
+      "hippopotamus": ["f/f2/Portrait_Hippopotamus_in_the_water.jpg"],
+      "rhinoceros": ["2/28/109_Male_White_rhinoceros_walking_in_the_Kalahari_Desert_of_Namibia_Photo_by_Giles_Laurent.jpg"],
+      "crocodile": ["8/81/NileCrocodile.jpg"],
+      "kangaroo": ["f/f1/Red_kangaroo_-_melbourne_zoo.jpg"],
+      "gorilla": ["5/50/Male_gorilla_in_SF_zoo.jpg"],
+      "peacock": ["7/7f/Peacock_on_tree_%2852077240794%29.jpg"],
+      "parrot": ["4/47/Scarlet_macaw_%28Ara_macao_cyanopterus%29_Copan.jpg"],
+      "swan": ["a/a2/CygneVaires.jpg"],
+      "llama": ["f/f7/Llamas%2C_Vernagt-Stausee%2C_Italy.jpg"],
+      "raccoon": ["3/3e/Raccoon_in_Central_Park_%2835264%29.jpg"],
+      "lobster": ["d/d5/Nur01521_-_Flickr_-_NOAA_Photo_Library.jpg"],
+      "mosquito": ["d/d0/Aedes_aegypti.jpg"],
+      "scorpion": ["f/fe/Scorpion_Photograph_By_Shantanu_Kuveskar.jpg"],
+      "caterpillar": ["f/f3/Chenille_de_Grand_porte_queue_%28macaon%29.jpg"],
+      "ladybug": ["0/08/7-Spotted-Ladybug-Coccinella-septempunctata-sq1.jpg"],
+      "squid": ["e/e1/Sepioteuthis_sepioidea_%28Caribbean_Reef_Squid%29.jpg"],
+      "boar": ["d/d2/Wildschwein%2C_N%C3%A4he_Pulverstampftor_%28cropped%29.jpg"],
+      "cricket": ["1/10/Gryllus_campestris_MHNT.jpg"],
+      "turkey": ["b/bc/20260428_tom_wild_turkey_matthaei_botanical_gardens_PD08952.jpg"],
+      "leopard": ["7/70/African_leopard_male_%28cropped%29.jpg"],
+      "buffalo": ["b/bc/Water_buffalo_at_Rinca.jpg"],
+      "dove": ["1/10/Columba_livia_%28Rock_Dove%2C_wild%29%2C_Duncansby_Head%2C_Caithness%2C_Scotland_1.jpg"],
+    },
     colors: {
       "red": ["2/21/Bright_red_painted_slightly_dirty_rough_seamless_metal_sheet_texture.jpg", 2320, 2308],
       "yellow": ["e/e4/Lemon.jpg", 1200, 848],
@@ -953,7 +1139,7 @@
   const SETTINGS = [
     {
       key: "cat", label: "1. หมวดคำศัพท์", grid: "two",
-      options: Object.entries(CATEGORIES).map(([value, c]) => ({ value, label: `${c.emoji} ${c.title.replace("ภาษาอังกฤษ", "")}`, sub: `${c.words.length} คำ` })),
+      options: Object.entries(CATEGORIES).map(([value, c]) => ({ value, label: `${c.emoji} ${c.title}`, sub: `${c.words.length} คำ` })),
     },
     {
       key: "qtype", label: "2. รูปแบบคำถาม", grid: true,
@@ -1017,7 +1203,8 @@
   const fileOf = (path) => path.split("/").pop().split("?")[0];
 
   // รูปของคำนี้: { src, w, h, overlay? } หรือ null ถ้าไม่มี
-  function photoOf(item) {
+  // small = ภาพย่อ 330px (ใช้ในตารางคำศัพท์ โหลดเร็วกว่า)
+  function photoOf(item, small = false) {
     const cat = state.settings.cat;
     let entry, mark;
     if (cat === "body") {
@@ -1030,7 +1217,8 @@
     }
     if (!entry) return null;
     const [path, w, h] = entry;
-    const src = path.startsWith("http") ? path : `${THUMB_BASE}/${path}/500px-${fileOf(path)}`;
+    const px = small && (w ?? 500) >= 330 ? 330 : 500; // หมวดสัตว์ไม่ได้เก็บขนาดภาพ (ต้นฉบับใหญ่กว่า 500px ทุกรูป)
+    const src = path.startsWith("http") ? path : `${THUMB_BASE}/${path}/${px}px-${fileOf(path)}`;
     const page = path.startsWith("http") ? path : `https://commons.wikimedia.org/wiki/File:${fileOf(path)}`;
     return { src, page, w, h, mark };
   }
@@ -1064,10 +1252,10 @@
     return svg + "</svg>";
   }
 
-  function picture(item, className) {
+  function picture(item, className, small = false) {
     const box = el("div", className);
     const fallback = () => { box.innerHTML = category().pic(item); };
-    const photo = photoOf(item);
+    const photo = photoOf(item, small);
     if (!photo) { fallback(); return box; }
 
     // รูปใช้ object-fit: contain และ SVG ใช้ viewBox สัดส่วนเดียวกับรูป จึงย่อขยายตรงกันทุกขนาดกรอบ
@@ -1075,6 +1263,7 @@
     const img = el("img");
     img.alt = "รูปภาพ"; // ไม่ใส่คำตอบ จะได้ไม่เฉลย
     img.draggable = false;
+    if (small) img.loading = "lazy"; // ตารางคำศัพท์: โหลดเมื่อเลื่อนมาถึง
     let retried = false;
     img.addEventListener("error", () => {
       if (retried) return fallback();
@@ -1156,9 +1345,9 @@
   function renderSettings() {
     const c = category();
     $("start-mascot").textContent = c.emoji;
-    $("start-title").textContent = `เกม${c.title}`;
+    $("start-title").textContent = `โหมด${c.title} (${c.en})`;
     $("start-subtitle").textContent = c.subtitle;
-    document.title = `เกม${c.title}`;
+    document.title = `โหมด${c.title} (${c.en})`;
 
     const box = $("settings");
     box.innerHTML = "";
@@ -1188,6 +1377,51 @@
       }
       box.append(section);
     });
+    renderVocab(shown.length + 1);
+  }
+
+  // ตารางรูป คำศัพท์ คำแปล ทั้งหมดของหมวด — กดแถวหรือปุ่ม 🔊 เพื่อฟังเสียง
+  let vocabCat = null;
+  function renderVocab(number) {
+    const box = $("vocab");
+    const c = category();
+    if (vocabCat === state.settings.cat && box.dataset.number === String(number)) return; // หมวดเดิม ไม่ต้องสร้างใหม่ (รูปไม่ต้องโหลดซ้ำ)
+    vocabCat = state.settings.cat;
+    box.dataset.number = number;
+    box.innerHTML = "";
+
+    const head = el("div", "vocab-head");
+    head.append(el("p", "setting-label", `${number}. ตารางคำศัพท์`), el("small", "", `ทั้งหมด ${c.words.length} คำ`));
+    box.append(head);
+
+    const table = el("table", "vocab-table");
+    const thead = el("thead");
+    const hr = el("tr");
+    hr.append(el("th", "", "รูป"), el("th", "", "คำศัพท์ / คำแปล"), el("th", "", ""));
+    thead.append(hr);
+    const tbody = el("tbody");
+    c.words.forEach((item) => {
+      const tr = el("tr");
+      const text = el("td");
+      text.append(el("div", "v-word", item.display), el("div", "v-th", item.th));
+      if (item.example) text.append(el("span", "v-ex", `“${item.example}” ${item.exampleTh}`));
+      const picCell = el("td");
+      picCell.append(picture(item, "v-pic", true));
+      const btnCell = el("td");
+      const btn = el("button", "btn speak-btn", "🔊");
+      btn.title = `ฟังเสียง ${item.display}`;
+      btnCell.append(btn);
+      tr.append(picCell, text, btnCell);
+      tr.style.cursor = "pointer";
+      tr.addEventListener("click", () => {
+        speak(item.speakAs);
+        tbody.querySelectorAll("tr.playing").forEach((r) => r.classList.remove("playing"));
+        tr.classList.add("playing");
+      });
+      tbody.append(tr);
+    });
+    table.append(thead, tbody);
+    box.append(table);
   }
 
   function saveSettings() {
