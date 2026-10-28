@@ -331,6 +331,239 @@
     animation: fall linear forwards;
   }
 
+  /* ---------- หน้าแรก: โหมด / ตัวละคร ---------- */
+  .options.two { grid-template-columns: 1fr 1fr; }
+  .char-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .char-tab {
+    flex: 1;
+    background: var(--soft);
+    color: var(--ink);
+    border: 3px solid transparent;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+    font-size: 16px;
+    padding: 8px 4px;
+  }
+  .char-tab.selected { background: #e8f1ff; border-color: var(--blue); }
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .char-btn {
+    background: var(--soft);
+    border: 3px solid transparent;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+    padding: 6px 2px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--ink);
+  }
+  .char-btn .face { font-size: 34px; line-height: 1.15; }
+  .char-btn small { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .char-btn.selected { background: #fff4d1; border-color: var(--yellow); }
+  .char-btn.selected .face { animation: hop 0.7s ease-in-out infinite; }
+  .name-input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 17px;
+    padding: 10px 14px;
+    border: 2px solid #e4def6;
+    border-radius: 14px;
+    color: var(--ink);
+    outline: none;
+    margin-bottom: 18px;
+  }
+  .name-input:focus { border-color: var(--blue); }
+
+  /* ---------- สนามแข่งวิ่ง ---------- */
+  .race {
+    position: sticky; /* ลู่วิ่งค้างไว้ด้านบน มองเห็นตลอดตอนเลื่อนดูภาพ */
+    top: 6px;
+    z-index: 5;
+    box-shadow: 0 6px 16px rgba(51, 41, 90, 0.18);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 4px solid #e4def6;
+  }
+  .stands {
+    position: relative;
+    height: 58px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 18px, rgba(0, 0, 0, 0.18) 18px 20px),
+      linear-gradient(#5b8def, #3f6fd1);
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 0 3px;
+    padding: 0 8px;
+    overflow: hidden;
+    font-size: 17px;
+    line-height: 19px;
+  }
+  .stands .fan { display: inline-block; animation: cheer 0.7s ease-in-out infinite alternate; }
+  .stands.hype .fan { animation-duration: 0.22s; }
+  .stands .banner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--red);
+    font-weight: 900;
+    font-size: 16px;
+    padding: 3px 14px;
+    border-radius: 99px;
+    white-space: nowrap;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    animation: pop 0.3s ease;
+    z-index: 2;
+  }
+  .track {
+    position: relative;
+    background: #2fb874;
+    padding: 6px 0;
+  }
+  .lane {
+    position: relative;
+    height: 34px;
+    background: #d9573f;
+    border-top: 2px solid rgba(255, 255, 255, 0.85);
+  }
+  .lane:last-child { border-bottom: 2px solid rgba(255, 255, 255, 0.85); }
+  .lane:nth-child(odd) { background: #cf4f38; }
+  .lane.me { background: #e8774f; }
+  .line {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 8px;
+    z-index: 1;
+  }
+  .line span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font-size: 10px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+  }
+  .start-line { left: 7%; background: #fff; }
+  .finish-line {
+    left: 92%;
+    width: 12px;
+    background: repeating-conic-gradient(#222 0 25%, #fff 0 50%) 0 0 / 12px 12px;
+  }
+  .finish-line span { left: 230%; color: #fff; }
+  .runner {
+    position: absolute;
+    top: 50%;
+    left: 7%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    transition: left 0.6s cubic-bezier(.3, .8, .4, 1);
+    z-index: 2;
+    white-space: nowrap;
+  }
+  .runner .body { font-size: 25px; line-height: 1; display: inline-block; }
+  .runner.moving .body { animation: run-bob 0.28s ease-in-out infinite alternate; }
+  .runner .tag {
+    order: -1;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 1px 5px;
+    border-radius: 6px;
+  }
+  .runner.me .tag { background: var(--yellow); color: var(--ink); }
+  .runner .medal { font-size: 16px; }
+  .rank-chip { background: #fff4d1; color: #8a5a00; }
+
+  .countdown {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(30, 20, 60, 0.45);
+    z-index: 40;
+    font-size: clamp(90px, 30vw, 180px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
+  }
+  .countdown span { animation: pop 0.5s ease; }
+
+  /* รูปถ่ายจริง: canvas + ชั้น SVG สำหรับวงกลม/คำใบ้ */
+  .photo-stack { position: relative; line-height: 0; }
+  .photo-stack canvas { width: 100%; height: auto; display: block; }
+  .photo-stack svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pic-loading {
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--soft);
+    line-height: 1.4;
+  }
+
+  /* หน้าผลการแข่ง */
+  .podium {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0 12px;
+  }
+  .podium .place { display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 120px; }
+  .podium .who { font-size: 42px; line-height: 1.1; }
+  .podium .pname { font-size: 13px; font-weight: 800; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .podium .block {
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .podium .p1 .block { height: 90px; background: linear-gradient(#ffd447, #e0a81e); }
+  .podium .p2 .block { height: 64px; background: linear-gradient(#dfe3ea, #a9b0bd); }
+  .podium .p3 .block { height: 46px; background: linear-gradient(#f0b27a, #c27a3e); }
+  .podium .me .pname { color: var(--primary); }
+  .ranking { text-align: left; margin: 0 auto 14px; max-width: 360px; padding-left: 0; list-style: none; }
+  .ranking li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--soft);
+    border-radius: 12px;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .ranking li.me { background: #fff4d1; }
+  .ranking .r-no { width: 26px; font-weight: 900; }
+  .ranking .r-face { font-size: 22px; }
+  .ranking .r-time { margin-left: auto; color: var(--muted); font-size: 14px; }
+
+  @keyframes cheer { from { transform: translateY(2px); } to { transform: translateY(-3px) rotate(-6deg); } }
+  @keyframes run-bob { from { transform: translateY(1px) rotate(-6deg); } to { transform: translateY(-4px) rotate(6deg); } }
   @keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
   @keyframes fadeout { 0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
   @keyframes blink { from { opacity: 0.35; transform: scale(0.92); } to { opacity: 1; transform: scale(1.08); } }
@@ -341,6 +574,9 @@
   @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 
   @media (max-width: 680px) {
+    .char-grid { grid-template-columns: repeat(4, 1fr); }
+    .runner .tag { display: none; }
+    .runner.me .tag { display: inline; }
     body { padding: 8px; }
     .card { padding: 14px; border-radius: 22px; }
     .images { grid-template-columns: 1fr; gap: 10px; }
@@ -354,22 +590,39 @@
   <!-- หน้าแรก -->
   <section class="card narrow" id="start-screen">
     <div class="title">
-      <div class="emoji">🔍</div>
+      <div class="emoji">🔍🏁</div>
       <h1>เกมจับผิดภาพ</h1>
-      <p>หาจุดที่ต่างกัน 5 จุด แล้วตอบคำถามคณิตเพื่อผ่านด่าน!</p>
+      <p>หาจุดต่างให้ไว แล้ววิ่งเข้าเส้นชัยให้ได้ก่อนบอท!</p>
     </div>
-    <div class="rules">
-      🔍 ดูภาพ 2 ภาพ แล้ว<b>แตะจุดที่ต่างกัน</b> (แตะภาพไหนก็ได้)<br>
-      ✅ หาให้ครบ <b>5 จุด</b> ในแต่ละด่าน มีทั้งหมด 5 ด่าน<br>
-      🧮 หาครบแล้ว ต้อง<b>ตอบคำถามคณิตให้ถูก 3 ข้อ</b> ก่อนไปด่านต่อไป<br>
-      💡 ติดตรงไหน กดคำใบ้ได้ด่านละ 1 ครั้ง
+
+    <p class="label" data-step>โหมดการเล่น</p>
+    <div class="options two" id="mode-options">
+      <button class="btn option" data-mode="race">🏁 แข่งวิ่งกับบอท<small>3 ภาพ · ใครถึงเส้นชัยก่อนชนะ</small></button>
+      <button class="btn option" data-mode="classic">🔍 เล่นปกติ<small>5 ด่าน ไม่มีคู่แข่ง</small></button>
     </div>
-    <p class="label">ระดับคำถามคณิตศาสตร์</p>
+
+    <p class="label" data-step>เลือกตัวละคร</p>
+    <div class="char-tabs" id="char-tabs"></div>
+    <div class="char-grid" id="char-grid"></div>
+    <input class="name-input" id="player-name" maxlength="14" autocomplete="off" placeholder="✏️ ชื่อของหนู (ไม่ใส่ก็ได้)">
+
+    <div id="bot-setting">
+      <p class="label" data-step>ความเร็วบอท</p>
+      <div class="options" id="bot-speed">
+        <button class="btn option" data-speed="0">🐢 ช้า<small>วิ่งสบาย ๆ</small></button>
+        <button class="btn option" data-speed="1">🐇 ปานกลาง<small>ต้องรีบหน่อย</small></button>
+        <button class="btn option" data-speed="2">🚀 เร็ว<small>ท้าทายสุด ๆ</small></button>
+      </div>
+    </div>
+
+    <p class="label" data-step>ระดับคำถามคณิตศาสตร์</p>
     <div class="options" id="difficulty">
       <button class="btn option" data-level="0">🐣 ง่าย<small>บวก ลบ คูณ หาร เลขน้อย</small></button>
       <button class="btn option" data-level="1">🐰 ปานกลาง<small>เลขสองหลัก</small></button>
       <button class="btn option" data-level="2">🦊 ยาก<small>เลขมากขึ้น</small></button>
     </div>
+
+    <div class="rules" id="rules"></div>
     <button class="btn btn-green start-btn" id="start-btn">เริ่มเล่น ▶️</button>
   </section>
 
@@ -380,6 +633,14 @@
       <span class="level-name" id="level-name"></span>
       <span class="chip" id="timer">⏱️ 0:00</span>
       <button class="btn btn-soft icon-btn" id="sound-btn" title="เปิด/ปิดเสียง">🔊</button>
+    </div>
+    <!-- สนามแข่งวิ่ง (โหมดแข่ง) -->
+    <div class="race hidden" id="race">
+      <div class="stands" id="stands"></div>
+      <div class="track" id="track">
+        <div class="line start-line"><span>START</span></div>
+        <div class="line finish-line"><span>FINISH</span></div>
+      </div>
     </div>
     <div class="status">
       <span class="found-dots" id="found-dots"></span>
@@ -399,6 +660,9 @@
     <div class="found-list" id="found-list"></div>
   </section>
 
+  <!-- นับถอยหลังก่อนเริ่มแข่ง -->
+  <div class="countdown hidden" id="countdown"></div>
+
   <!-- หน้าต่างคำถามคณิตศาสตร์ -->
   <div class="modal hidden" id="math-modal">
     <div class="card">
@@ -414,9 +678,11 @@
 
   <!-- หน้าจบเกม -->
   <section class="card narrow final hidden" id="final-screen">
-    <div class="emoji">🏆</div>
-    <h2>🎉 เก่งมาก! 🎉</h2>
-    <p>จับผิดภาพครบทั้ง 5 ด่าน และตอบคำถามคณิตผ่านทุกด่านแล้ว</p>
+    <div class="emoji" id="f-emoji">🏆</div>
+    <h2 id="f-title">🎉 เก่งมาก! 🎉</h2>
+    <p id="f-text">จับผิดภาพครบทั้ง 5 ด่าน และตอบคำถามคณิตผ่านทุกด่านแล้ว</p>
+    <div class="podium hidden" id="podium"></div>
+    <ol class="ranking hidden" id="ranking"></ol>
     <div class="stars" id="f-stars"></div>
     <div class="stats">
       <div><b id="f-time"></b>เวลาที่ใช้หาจุดต่าง</div>
@@ -696,6 +962,209 @@
   ];
 
   // ======================================================================
+  //  ฉากรูปถ่ายจริง (Wikimedia Commons) — สร้างจุดต่างตอนเล่นด้วยการแก้พิกเซลบน canvas
+  //  ตำแหน่งเป็น % ของภาพ (หลังครอป): x, y และรัศมี r เป็น % ของความกว้าง
+  //  op: hue = เปลี่ยนสี (deg = องศาที่หมุนสี) · patch = เอาภาพจากจุด (sx, sy) มาวางทับ
+  //      (ใช้ลบวัตถุด้วยพื้นหลัง หรือเพิ่มวัตถุซ้ำ) · flip = กลับด้านซ้าย-ขวา
+  // ======================================================================
+  const PHOTO_BASE = "https://upload.wikimedia.org/wikipedia/commons/thumb";
+  const PHOTO_W = 960;
+  const PHOTO_SCENES = [
+    {
+      name: "ผลไม้รวม", place: "ตะกร้า", thing: "ผลไม้", unit: "ผล", emoji: "🍎",
+      photo: ["c/c1/Fruit-49740_bananas_apples_tangerines_-_Hans_Braxmeier.jpg", 3264, 2448],
+      diffs: [
+        { label: "สีแอปเปิลลูกซ้าย", op: "hue", x: 12, y: 55, r: 7, deg: 100 },
+        { label: "สีส้มลูกบน", op: "hue", x: 57, y: 13, r: 7, deg: 180 },
+        { label: "แอปเปิลกลายเป็นส้ม", op: "patch", x: 24, y: 70, r: 7, sx: 89, sy: 75 },
+        { label: "กล้วยกลับด้าน", op: "flip", x: 70, y: 55, r: 10 },
+        { label: "กล้วยสีเขียว", op: "hue", x: 55, y: 82, r: 6, deg: 70 },
+        { label: "สีแอปเปิลลูกบน", op: "hue", x: 45, y: 24, r: 8, deg: 250 },
+        { label: "มีส้มเพิ่มมา", op: "patch", x: 6, y: 7, r: 5, sx: 89, sy: 30 },
+      ],
+    },
+    {
+      name: "ชั้นวางกระถาง", place: "ชั้นวาง", thing: "กระถาง", unit: "ใบ", emoji: "🌷",
+      photo: ["c/c2/Flower_Pots_%286046949567%29.jpg", 3860, 2369],
+      diffs: [
+        { label: "สีกระถางสีฟ้า", op: "hue", x: 34, y: 32, r: 6, deg: 180, mask: true },
+        { label: "สีกระถางสีส้ม", op: "hue", x: 65, y: 32, r: 6, deg: 130, mask: true },
+        { label: "กระถางสีเหลืองหายไป", op: "patch", x: 21.5, y: 61, r: 6.5, sx: 76, sy: 61 },
+        { label: "สีกระถางสีชมพู", op: "hue", x: 86, y: 61, r: 6.5, deg: 200, mask: true },
+        { label: "สีกระถางสีเขียว", op: "hue", x: 34, y: 92, r: 6, deg: 200, mask: true },
+        { label: "กระถางสีขาวหายไป", op: "patch", x: 69, y: 90, r: 6.5, sx: 79, sy: 90 },
+        { label: "กระถางชั้นบนหายไป", op: "patch", x: 50, y: 10, r: 4.5, sx: 60, sy: 10 },
+      ],
+    },
+    {
+      name: "บอลลูนบนฟ้า", place: "ท้องฟ้า", thing: "บอลลูน", unit: "ลูก", emoji: "🎈",
+      photo: ["9/9b/Hot_air_balloons_IMGP1798p.jpg", 7368, 4924],
+      diffs: [
+        { label: "บอลลูนมุมขวาหายไป", op: "patch", x: 83, y: 27, r: 10, sx: 64, sy: 27 },
+        { label: "สีบอลลูนลูกใหญ่", op: "hue", x: 52, y: 46, r: 8, deg: 150, mask: true },
+        { label: "สีบอลลูนลูกเล็ก", op: "hue", x: 19, y: 81, r: 6.5, deg: 120, mask: true },
+        { label: "มีบอลลูนเพิ่มมา", op: "patch", x: 36, y: 28, r: 6.5, sx: 19, sy: 81 },
+        { label: "มีบอลลูนเพิ่มทางซ้าย", op: "patch", x: 12, y: 32, r: 9, sx: 83, sy: 25 },
+        { label: "ยอดต้นไม้หายไป", op: "patch", x: 50, y: 96, r: 5, sx: 70, sy: 96 },
+      ],
+    },
+    {
+      name: "เรือที่ท่าเรือ", place: "ท่าเรือ", thing: "เรือ", unit: "ลำ", emoji: "⛵",
+      photo: ["2/2e/Colourful_boats_in_Cemaes_Harbour_-_geograph.org.uk_-_2659359.jpg", 4000, 3000],
+      diffs: [
+        { label: "สีเรือลำแดง", op: "hue", x: 22, y: 63, r: 17, deg: 210, mask: true },
+        { label: "สีเรือลำเหลือง", op: "hue", x: 7, y: 35, r: 5, deg: 220, mask: true },
+        { label: "สีเรือลำเหลืองด้านขวา", op: "hue", x: 82, y: 31, r: 5, deg: 200, mask: true },
+        { label: "เรือขาวกลับด้าน", op: "flip", x: 80, y: 47, r: 8 },
+        { label: "ธงหายไป", op: "patch", x: 27, y: 5, r: 3, sx: 35, sy: 5 },
+        { label: "ป้ายบนกำแพงหายไป", op: "patch", x: 18, y: 13, r: 3.5, sx: 24, sy: 13 },
+      ],
+    },
+    {
+      name: "ลูกโป่งหลากสี", place: "งานวันเกิด", thing: "ลูกโป่ง", unit: "ลูก", emoji: "🎈",
+      photo: ["0/04/Balloons_in_the_sky.jpg", 1712, 2288],
+      crop: { x: 0, y: 12, w: 100, h: 55 },
+      diffs: [
+        { label: "สีลูกโป่งสีฟ้า", op: "hue", x: 44, y: 34, r: 12, deg: 180 },
+        { label: "สีลูกโป่งสีเขียว", op: "hue", x: 89, y: 53, r: 11, deg: 200 },
+        { label: "สีลูกโป่งลายดาวขวาล่าง", op: "hue", x: 87, y: 84, r: 11, deg: 200 },
+        { label: "สีลูกโป่งลายจุด", op: "hue", x: 27, y: 45, r: 10, deg: 120 },
+        { label: "สีลูกโป่งบนสุด", op: "hue", x: 26, y: 20, r: 9.5, deg: 180 },
+        { label: "สีลูกโป่งสีแดง", op: "hue", x: 11, y: 36, r: 9, deg: 60 },
+        { label: "สีลูกโป่งสีเหลือง", op: "hue", x: 62, y: 45, r: 10, deg: 220 },
+      ],
+    },
+  ];
+
+  // ขนาดภาพหลังครอป และพื้นที่แตะ (หน่วยเดียวกับฉาก SVG: กว้าง 400)
+  PHOTO_SCENES.forEach((scene) => {
+    const [, w, h] = scene.photo;
+    const c = scene.crop || { x: 0, y: 0, w: 100, h: 100 };
+    scene.viewH = (400 * (h * c.h)) / (w * c.w);
+    scene.diffs.forEach((d) => { d.hit = [d.x * 4, (d.y / 100) * scene.viewH, d.r * 4]; });
+  });
+
+  const photoUrl = (scene) => {
+    const path = scene.photo[0];
+    return `${PHOTO_BASE}/${path}/${PHOTO_W}px-${path.split("/").pop()}`;
+  };
+
+  const imageCache = new Map();
+  function loadPhoto(scene) {
+    if (!imageCache.has(scene)) {
+      imageCache.set(scene, new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous"; // Commons อนุญาต CORS จึงอ่าน/แก้พิกเซลได้
+        img.onload = () => resolve(img);
+        img.onerror = () => { imageCache.delete(scene); reject(new Error("load failed")); };
+        img.src = photoUrl(scene);
+      }));
+    }
+    return imageCache.get(scene);
+  }
+
+  // ---------- แก้พิกเซล ----------
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h /= 6;
+    }
+    return [h, s, l];
+  }
+  function hslToRgb(h, s, l) {
+    if (s === 0) return [l * 255, l * 255, l * 255];
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const t = (x) => {
+      if (x < 0) x += 1;
+      if (x > 1) x -= 1;
+      if (x < 1 / 6) return p + (q - p) * 6 * x;
+      if (x < 1 / 2) return q;
+      if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+      return p;
+    };
+    return [t(h + 1 / 3) * 255, t(h) * 255, t(h - 1 / 3) * 255];
+  }
+
+  // แก้ภาพ dst ในวงกลมของจุดต่าง d โดยอ่านจากภาพต้นฉบับ src (ขอบไล่จางให้เนียน)
+  function applyPhotoDiff(d, src, dst, W, H) {
+    const cx = (d.x / 100) * W, cy = (d.y / 100) * H, r = (d.r / 100) * W;
+    const feather = r * (d.op === "hue" ? 0.15 : 0.3);
+    const x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(W - 1, Math.ceil(cx + r));
+    const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(H - 1, Math.ceil(cy + r));
+    const ox = d.op === "patch" ? Math.round((d.sx / 100) * W - cx) : 0;
+    const oy = d.op === "patch" ? Math.round((d.sy / 100) * H - cy) : 0;
+    // mask: เปลี่ยนสีเฉพาะวัตถุ ไม่เปลี่ยนพื้นหลัง
+    // สีพื้นหลัง = กลุ่มสีที่พบมากที่สุดรอบขอบวงกลม (ไม่ใช้ค่าเฉลี่ย เพราะอาจมีวัตถุอื่นแตะขอบ)
+    let bg = null;
+    if (d.mask) {
+      const ring = [];
+      for (let k = 0; k < 72; k++) {
+        const a = (k / 72) * Math.PI * 2;
+        const px = Math.round(cx + Math.cos(a) * r), py = Math.round(cy + Math.sin(a) * r);
+        if (px < 0 || py < 0 || px >= W || py >= H) continue;
+        const j = (py * W + px) * 4;
+        ring.push([src[j], src[j + 1], src[j + 2]]);
+      }
+      const near = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 40;
+      let best = [];
+      ring.forEach((p) => {
+        const cluster = ring.filter((q) => near(p, q));
+        if (cluster.length > best.length) best = cluster;
+      });
+      bg = [0, 1, 2].map((k) => best.reduce((s, p) => s + p[k], 0) / Math.max(1, best.length));
+    }
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const dist = Math.hypot(x - cx, y - cy);
+        if (dist > r) continue;
+        let wgt = Math.min(1, (r - dist) / feather);
+        const i = (y * W + x) * 4;
+        if (bg) {
+          const diff = Math.hypot(src[i] - bg[0], src[i + 1] - bg[1], src[i + 2] - bg[2]);
+          wgt *= Math.min(1, Math.max(0, (diff - 35) / 30)); // ใกล้สีพื้นหลัง = ไม่เปลี่ยน
+          if (wgt <= 0) continue;
+        }
+        let rgb;
+        if (d.op === "hue") {
+          const [hh, ss, ll] = rgbToHsl(src[i], src[i + 1], src[i + 2]);
+          rgb = hslToRgb((hh + d.deg / 360) % 1, Math.min(1, ss * 1.15), ll);
+        } else {
+          const sx = d.op === "flip" ? Math.round(2 * cx - x) : x + ox;
+          const sy = d.op === "flip" ? y : y + oy;
+          if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
+          const j = (sy * W + sx) * 4;
+          rgb = [src[j], src[j + 1], src[j + 2]];
+        }
+        for (let k = 0; k < 3; k++) dst[i + k] = dst[i + k] * (1 - wgt) + rgb[k] * wgt;
+      }
+    }
+  }
+
+  // สร้างภาพที่ 1 (ต้นฉบับ) และภาพที่ 2 (มีจุดต่าง) เป็น canvas
+  async function buildPhotoPics(scene, diffs) {
+    const img = await loadPhoto(scene);
+    const c = scene.crop || { x: 0, y: 0, w: 100, h: 100 };
+    const sx = (img.naturalWidth * c.x) / 100, sy = (img.naturalHeight * c.y) / 100;
+    const sw = (img.naturalWidth * c.w) / 100, sh = (img.naturalHeight * c.h) / 100;
+    const W = 800, H = Math.round((W * sh) / sw);
+    const make = () => { const cv = document.createElement("canvas"); cv.width = W; cv.height = H; return cv; };
+    const a = make(), b = make();
+    const ctxA = a.getContext("2d");
+    ctxA.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    const original = ctxA.getImageData(0, 0, W, H); // ถ้าโหลดแบบไม่มี CORS บรรทัดนี้จะ error → ใช้ฉาก SVG แทน
+    const edited = new ImageData(new Uint8ClampedArray(original.data), W, H);
+    diffs.forEach((d) => applyPhotoDiff(d, original.data, edited.data, W, H));
+    b.getContext("2d").putImageData(edited, 0, 0);
+    return [a, b];
+  }
+  // ======================================================================
   //  คำถามคณิตศาสตร์
   // ======================================================================
   const TIERS = [
@@ -769,24 +1238,86 @@
   }
 
   // 3 ข้อต่อด่าน: คำนวณ 2 ข้อ (คนละเครื่องหมาย) + โจทย์ปัญหาตามฉาก 1 ข้อ
-  function makeMathQuestions(levelIndex) {
+  // levelIndex = ด่านที่ (ใช้เพิ่มความยาก), scene = ฉากของโจทย์ปัญหา
+  function makeMathQuestions(levelIndex, scene = SCENES[levelIndex]) {
     const tierIndex = Math.min(TIERS.length - 1, state.difficulty + Math.floor(levelIndex / 2));
     const tier = TIERS[tierIndex];
     const wordTier = TIERS[Math.max(0, tierIndex - 1)];
     const ops = shuffle(["add", "sub", "mul", "div"]).slice(0, 2);
     const questions = ops.map((op) => makeArithmetic(op, tier));
-    questions.push(makeWordProblem(SCENES[levelIndex], wordTier));
+    questions.push(makeWordProblem(scene, wordTier));
     questions.forEach((q) => (q.choices = makeChoices(q)));
     return questions;
   }
 
   // ======================================================================
+  //  ตัวละคร (ใช้ emoji ที่ Windows 10 แสดงได้)
+  //  หุ่นยนต์ใช้ 🤖 ย้อมสีด้วย hue-rotate ให้ได้หลายสี
+  // ======================================================================
+  const CHARACTERS = {
+    people: {
+      label: "🧒 คน",
+      list: [
+        { id: "boy", face: "👦", name: "เด็กชาย" },
+        { id: "girl", face: "👧", name: "เด็กหญิง" },
+        { id: "runner", face: "🏃", name: "นักวิ่ง" },
+        { id: "police", face: "👮", name: "ตำรวจ" },
+        { id: "builder", face: "👷", name: "ช่าง" },
+        { id: "prince", face: "🤴", name: "เจ้าชาย" },
+        { id: "princess", face: "👸", name: "เจ้าหญิง" },
+        { id: "santa", face: "🎅", name: "ซานต้า" },
+      ],
+    },
+    animals: {
+      label: "🐾 สัตว์",
+      list: [
+        { id: "dog", face: "🐶", name: "หมา" },
+        { id: "cat", face: "🐱", name: "แมว" },
+        { id: "rabbit", face: "🐰", name: "กระต่าย" },
+        { id: "fox", face: "🦊", name: "จิ้งจอก" },
+        { id: "panda", face: "🐼", name: "แพนด้า" },
+        { id: "tiger", face: "🐯", name: "เสือ" },
+        { id: "frog", face: "🐸", name: "กบ" },
+        { id: "unicorn", face: "🦄", name: "ยูนิคอร์น" },
+      ],
+    },
+    robots: {
+      label: "🤖 หุ่นยนต์",
+      list: [
+        { id: "robot", face: "🤖", name: "หุ่นเงิน" },
+        { id: "robot-red", face: "🤖", name: "หุ่นแดง", hue: 150 },
+        { id: "robot-green", face: "🤖", name: "หุ่นเขียว", hue: 260 },
+        { id: "robot-purple", face: "🤖", name: "หุ่นม่วง", hue: 60 },
+        { id: "invader", face: "👾", name: "เอเลี่ยนบอท" },
+        { id: "alien", face: "👽", name: "มนุษย์ต่างดาว" },
+        { id: "rocket", face: "🚀", name: "จรวด" },
+        { id: "ufo", face: "🛸", name: "จานบิน" },
+      ],
+    },
+  };
+  const ALL_CHARACTERS = Object.values(CHARACTERS).flatMap((g) => g.list);
+  const findCharacter = (id) => ALL_CHARACTERS.find((c) => c.id === id) || ALL_CHARACTERS[0];
+  const faceHTML = (c) => `<span class="face" style="${c.hue ? `filter:hue-rotate(${c.hue}deg)` : ""}">${c.face}</span>`;
+  const BOT_NAMES = ["บอทสายฟ้า", "บอทจรวด", "บอทลมกรด", "บอทพายุ", "บอทเทอร์โบ", "บอทดาวตก"];
+
+  // ======================================================================
   //  สถานะเกม
   // ======================================================================
   const DIFFS_PER_LEVEL = 5;
+  const RACE_PICS = 3;                                   // แข่งวิ่ง: 3 ภาพ
+  const RACE_STEPS = RACE_PICS * (DIFFS_PER_LEVEL + 3);  // = 24 ช่วง (จุดต่าง 5 + คณิต 3 ต่อภาพ)
+  const BOT_FINISH_SEC = [300, 210, 150];                // เวลาที่บอทเฉลี่ยใช้ถึงเส้นชัย: ช้า / ปานกลาง / เร็ว
+
   const state = {
+    mode: "race",       // race | classic
     difficulty: 0,
+    botSpeed: 1,
+    charGroup: "people",
+    charId: "boy",
+    playerName: "",
+    levels: [],         // ฉากที่จะเล่น (สุ่มจากฉาก SVG + รูปถ่าย)
     level: 0,
+    scene: null,
     diffs: [],          // จุดต่างที่สุ่มได้ในด่านนี้
     found: new Set(),
     hintLeft: 1,
@@ -794,11 +1325,13 @@
     wrongClicks: 0,
     mathMistakes: 0,
     hintsUsed: 0,
-    findTime: 0,        // เวลารวมที่ใช้หาจุดต่าง (ms)
+    findTime: 0,
     levelStart: 0,
     timerId: null,
-    math: null,         // { questions, index, locked }
+    math: null,
     soundOn: true,
+    token: 0,           // เปลี่ยนทุกครั้งที่เริ่ม/ออกเกม เพื่อยกเลิกงานค้าง
+    race: null,         // { runners, start, finished, botTimer }
   };
 
   const $ = (id) => document.getElementById(id);
@@ -829,6 +1362,25 @@
       osc.stop(t + dur + 0.05);
     } catch (e) {}
   }
+  function noise(dur, vol = 0.15, delay = 0) {
+    if (!state.soundOn) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime + delay;
+      const buf = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.sin((Math.PI * i) / data.length);
+      const src = audioCtx.createBufferSource();
+      const filter = audioCtx.createBiquadFilter();
+      const gain = audioCtx.createGain();
+      src.buffer = buf;
+      filter.type = "bandpass";
+      filter.frequency.value = 1200;
+      gain.gain.value = vol;
+      src.connect(filter).connect(gain).connect(audioCtx.destination);
+      src.start(t);
+    } catch (e) {}
+  }
   const sounds = {
     found() { tone(784, 0.12); tone(1047, 0.2, { delay: 0.1 }); },
     wrong() { tone(200, 0.25, { type: "triangle" }); },
@@ -836,6 +1388,9 @@
     levelDone() { [523, 659, 784, 1047].forEach((fq, i) => tone(fq, 0.22, { type: "triangle", delay: i * 0.12 })); },
     correct() { tone(660, 0.12); tone(880, 0.2, { delay: 0.1 }); },
     win() { [523, 659, 784, 1047, 784, 1047].forEach((fq, i) => tone(fq, 0.26, { type: "triangle", delay: i * 0.14 })); },
+    beep(high) { tone(high ? 1046 : 523, high ? 0.45 : 0.18, { type: "square", vol: 0.12 }); },
+    cheer() { noise(1.2, 0.18); },
+    step() { tone(330 + Math.random() * 60, 0.05, { type: "triangle", vol: 0.06 }); },
   };
 
   function toast(text, ms = 1600) {
@@ -863,15 +1418,28 @@
     window.scrollTo(0, 0);
   }
 
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   // ======================================================================
-  //  วาดภาพและจัดการการแตะ
+  //  วาดภาพ (ฉาก SVG หรือรูปถ่าย) และจัดการการแตะ
   // ======================================================================
+  const isPhoto = (scene) => !!scene.photo;
+  const viewHeight = (scene) => (isPhoto(scene) ? scene.viewH : 300);
+
   function sceneSVG(scene, modified) {
     const body = scene.parts.map((part) => {
       if (typeof part === "string") return part;
       return modified && state.diffs.includes(part) ? part.alt : part.base;
     }).join("");
     return `<svg viewBox="0 0 400 300" role="img" aria-label="ภาพ${scene.name}">${body}<g class="marks"></g></svg>`;
+  }
+
+  // รูปถ่าย: canvas + ชั้น SVG ใส (viewBox กว้าง 400 เท่าฉาก SVG) สำหรับวงกลม/กากบาท
+  function photoStack(canvas, scene) {
+    const wrap = el("div", "photo-stack");
+    wrap.append(canvas);
+    wrap.insertAdjacentHTML("beforeend", `<svg viewBox="0 0 400 ${scene.viewH.toFixed(1)}" aria-hidden="true"><g class="marks"></g></svg>`);
+    return wrap;
   }
 
   function svgPoint(svg, evt) {
@@ -885,10 +1453,15 @@
     document.querySelectorAll(".pic .marks").forEach((g) => g.insertAdjacentHTML("beforeend", markup));
   }
 
+  function canPlay() {
+    return state.scene && !state.cooldown && $("math-modal").classList.contains("hidden") &&
+      $("countdown").classList.contains("hidden") && state.found.size < DIFFS_PER_LEVEL;
+  }
+
   function onPicClick(evt) {
-    if (state.cooldown || !$("math-modal").classList.contains("hidden")) return;
-    if (state.found.size >= DIFFS_PER_LEVEL) return;
+    if (!canPlay()) return;
     const svg = evt.currentTarget.querySelector("svg");
+    if (!svg) return;
     const p = svgPoint(svg, evt);
     const dist = (d) => Math.hypot(p.x - d.hit[0], p.y - d.hit[1]);
 
@@ -912,8 +1485,9 @@
     sounds.found();
     $("found-list").append(el("span", "", `✅ ${d.label}`));
     renderStatus();
+    if (state.mode === "race") advancePlayer();
     if (state.found.size === DIFFS_PER_LEVEL) levelFound();
-    else toast(`เจอแล้ว! ${d.label} 👍`, 1200);
+    else toast(`เจอแล้ว! ${d.label} 👍${state.mode === "race" ? " วิ่งต่อ!" : ""}`, 1200);
   }
 
   function wrongClick(p) {
@@ -924,15 +1498,15 @@
     renderStatus();
     // หน่วงเวลานิดหน่อย กันการแตะมั่วรัว ๆ
     state.cooldown = true;
-    document.querySelectorAll(".pic").forEach((p) => p.classList.add("cooldown"));
+    document.querySelectorAll(".pic").forEach((el) => el.classList.add("cooldown"));
     setTimeout(() => {
       state.cooldown = false;
-      document.querySelectorAll(".pic").forEach((p) => p.classList.remove("cooldown"));
+      document.querySelectorAll(".pic").forEach((el) => el.classList.remove("cooldown"));
     }, 600);
   }
 
   function useHint() {
-    if (state.hintLeft <= 0 || state.found.size >= DIFFS_PER_LEVEL) return;
+    if (state.hintLeft <= 0 || !canPlay()) return;
     const remaining = state.diffs.filter((d) => !state.found.has(d));
     const d = pick(remaining);
     state.hintLeft--;
@@ -960,11 +1534,19 @@
     const s = Math.floor(ms / 1000);
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   };
-  function startTimer() {
+  function startTimer(from = Date.now()) {
     clearInterval(state.timerId);
-    state.levelStart = Date.now();
-    $("timer").textContent = "⏱️ 0:00";
-    state.timerId = setInterval(() => ($("timer").textContent = `⏱️ ${fmt(Date.now() - state.levelStart)}`), 500);
+    state.levelStart = from;
+    const update = () => {
+      if (state.mode === "race") {
+        const me = state.race && state.race.runners[0];
+        $("timer").textContent = `🏁 อันดับ ${rankOf(me)} · ⏱️ ${fmt(Date.now() - state.race.start)}`;
+      } else {
+        $("timer").textContent = `⏱️ ${fmt(Date.now() - state.levelStart)}`;
+      }
+    };
+    update();
+    state.timerId = setInterval(update, 500);
   }
   function stopTimer() {
     clearInterval(state.timerId);
@@ -972,46 +1554,260 @@
   }
 
   // ======================================================================
-  //  ลำดับการเล่น
+  //  สนามแข่งวิ่ง + บอท
   // ======================================================================
-  function startGame() {
-    Object.assign(state, { level: 0, wrongClicks: 0, mathMistakes: 0, hintsUsed: 0, findTime: 0 });
-    showScreen("game-screen");
-    startLevel(0);
+  const START_X = 7, FINISH_X = 92;  // ตำแหน่งเส้น (% ของความกว้างลู่)
+
+  function makeRunners() {
+    const me = findCharacter(state.charId);
+    const others = shuffle(ALL_CHARACTERS.filter((c) => c.id !== me.id)).slice(0, 3);
+    const names = shuffle([...BOT_NAMES]);
+    const base = BOT_FINISH_SEC[state.botSpeed];
+    return [
+      { me: true, char: me, name: state.playerName || "หนู", progress: 0, finishedAt: null },
+      ...others.map((char, i) => ({
+        me: false,
+        char,
+        name: names[i],
+        progress: 0,
+        finishedAt: null,
+        // บอทแต่ละตัวเร็วไม่เท่ากัน: ±18% จากเวลาเฉลี่ยของระดับ
+        rate: RACE_STEPS / (base * (0.85 + i * 0.13 + Math.random() * 0.08)),
+      })),
+    ];
   }
 
-  function startLevel(index) {
-    const scene = SCENES[index];
+  function buildTrack() {
+    const track = $("track");
+    track.querySelectorAll(".lane").forEach((l) => l.remove());
+    state.race.runners.forEach((r) => {
+      const lane = el("div", "lane" + (r.me ? " me" : ""));
+      const runner = el("div", "runner" + (r.me ? " me" : ""));
+      runner.innerHTML = `${faceHTML(r.char).replace('class="face"', 'class="body"')}<span class="tag">${r.me ? "⭐ " : ""}${r.name}</span><span class="medal"></span>`;
+      lane.append(runner);
+      track.append(lane);
+      r.el = runner;
+    });
+    renderRunners();
+  }
+
+  function buildStands() {
+    const fans = ["🙋", "🙌", "👏", "🎉", "📣", "🙆", "👦", "👧", "🧒", "🚩"];
+    const box = $("stands");
+    box.innerHTML = "";
+    for (let i = 0; i < 46; i++) {
+      const fan = el("span", "fan", pick(fans));
+      fan.style.animationDelay = `${(Math.random() * 0.7).toFixed(2)}s`;
+      box.append(fan);
+    }
+  }
+
+  function standsBanner(text, ms = 2200) {
+    const box = $("stands");
+    box.querySelectorAll(".banner").forEach((b) => b.remove());
+    const b = el("div", "banner", text);
+    box.append(b);
+    box.classList.add("hype");
+    setTimeout(() => { b.remove(); box.classList.remove("hype"); }, ms);
+  }
+
+  function renderRunners() {
+    state.race.runners.forEach((r) => {
+      const pct = START_X + (FINISH_X - START_X) * Math.min(1, r.progress / RACE_STEPS);
+      r.el.style.left = `${pct}%`;
+      const place = r.finishedAt ? finishOrder().indexOf(r) : -1;
+      r.el.querySelector(".medal").textContent = place >= 0 ? ["🥇", "🥈", "🥉", "🏅"][place] : "";
+    });
+  }
+
+  function finishOrder() {
+    return state.race.runners.filter((r) => r.finishedAt).sort((a, b) => a.finishedAt - b.finishedAt);
+  }
+
+  // อันดับปัจจุบัน: เข้าเส้นชัยแล้วเรียงตามเวลา ที่เหลือเรียงตามระยะทาง
+  function rankOf(runner) {
+    const done = finishOrder();
+    if (runner.finishedAt) return done.indexOf(runner) + 1;
+    const ahead = state.race.runners.filter((r) => r !== runner && !r.finishedAt && r.progress > runner.progress).length;
+    return done.length + ahead + 1;
+  }
+
+  function bump(runner) {
+    runner.el.classList.add("moving");
+    clearTimeout(runner.moveTimer);
+    runner.moveTimer = setTimeout(() => runner.el.classList.remove("moving"), 650);
+  }
+
+  function crossFinish(runner) {
+    runner.progress = RACE_STEPS;
+    runner.finishedAt = Date.now();
+    sounds.cheer();
+    const place = finishOrder().indexOf(runner) + 1;
+    standsBanner(runner.me ? `🎉 ${runner.name} เข้าเส้นชัยอันดับ ${place}!` : `${runner.char.face} ${runner.name} เข้าเส้นชัยอันดับ ${place}!`);
+  }
+
+  function advancePlayer() {
+    const me = state.race.runners[0];
+    if (me.finishedAt) return;
+    const leaderBefore = leader();
+    me.progress = Math.min(RACE_STEPS, me.progress + 1);
+    sounds.step();
+    bump(me);
+    if (me.progress >= RACE_STEPS) crossFinish(me);
+    else if (leaderBefore !== me && leader() === me) { standsBanner(`📣 ${me.name} ขึ้นนำแล้ว!`); sounds.cheer(); }
+    renderRunners();
+  }
+
+  function leader() {
+    return [...state.race.runners].sort((a, b) => b.progress - a.progress)[0];
+  }
+
+  function startBots() {
+    clearInterval(state.race.botTimer);
+    let last = Date.now();
+    state.race.botTimer = setInterval(() => {
+      const now = Date.now();
+      const dt = (now - last) / 1000;
+      last = now;
+      let moved = false;
+      state.race.runners.forEach((r) => {
+        if (r.me || r.finishedAt) return;
+        const before = Math.floor(r.progress);
+        r.progress += r.rate * dt * (0.6 + Math.random() * 0.8); // สุ่มจังหวะ วิ่งเร็วบ้างช้าบ้าง
+        if (Math.floor(r.progress) > before) { bump(r); moved = true; }
+        if (r.progress >= RACE_STEPS) crossFinish(r);
+      });
+      if (moved) renderRunners();
+    }, 400);
+  }
+
+  function stopBots() {
+    if (state.race) clearInterval(state.race.botTimer);
+  }
+
+  async function countdown(token) {
+    const box = $("countdown");
+    box.classList.remove("hidden");
+    for (const n of ["3", "2", "1", "ปัง! 🔫"]) {
+      if (token !== state.token) return false;
+      box.innerHTML = `<span>${n}</span>`;
+      sounds.beep(n.startsWith("ปัง"));
+      await sleep(n.startsWith("ปัง") ? 700 : 800);
+    }
+    box.classList.add("hidden");
+    return token === state.token;
+  }
+
+  // ======================================================================
+  //  ลำดับการเล่น
+  // ======================================================================
+  // เลือกฉาก: แข่งวิ่ง = รูปถ่าย 2 + การ์ตูน 1 / ปกติ = การ์ตูน 3 + รูปถ่าย 2 (สลับลำดับ)
+  function pickLevels() {
+    const photos = shuffle([...PHOTO_SCENES]);
+    const drawn = shuffle([...SCENES]);
+    const list = state.mode === "race"
+      ? [...photos.slice(0, 2), drawn[0]]
+      : [...drawn.slice(0, 3), ...photos.slice(0, 2)];
+    return shuffle(list);
+  }
+
+  async function startGame() {
+    const token = ++state.token;
+    stopTimer();
+    stopBots();
+    $("math-modal").classList.add("hidden");
+    Object.assign(state, { level: 0, wrongClicks: 0, mathMistakes: 0, hintsUsed: 0, findTime: 0, scene: null });
+    state.playerName = $("player-name").value.trim();
+    saveSettings();
+    state.levels = pickLevels();
+    const racing = state.mode === "race";
+    $("race").classList.toggle("hidden", !racing);
+    showScreen("game-screen");
+    if (racing) {
+      state.race = { runners: makeRunners(), start: 0, botTimer: null };
+      buildStands();
+      buildTrack();
+      // โหลดภาพแรกระหว่างนับถอยหลัง
+      const first = startLevel(0, token);
+      if (!(await countdown(token))) return;
+      state.race.start = Date.now();
+      await first;
+      if (token !== state.token) return;
+      startTimer();
+      startBots();
+      standsBanner("🏁 เริ่มแข่งแล้ว! หาจุดต่างให้ไว!", 1800);
+    } else {
+      state.race = null;
+      startLevel(0, token);
+    }
+  }
+
+  async function startLevel(index, token = state.token) {
+    let scene = state.levels[index];
     state.level = index;
     state.found = new Set();
     state.hintLeft = 1;
     state.cooldown = false;
-    const candidates = scene.parts.filter((p) => typeof p !== "string");
-    state.diffs = shuffle([...candidates]).slice(0, DIFFS_PER_LEVEL);
-
-    $("level-name").textContent = `ด่าน ${index + 1}/${SCENES.length} · ${scene.name}`;
-    $("pic-a").innerHTML = sceneSVG(scene, false);
-    $("pic-b").innerHTML = sceneSVG(scene, true);
+    state.scene = null;
+    const total = state.levels.length;
+    $("level-name").textContent = `${state.mode === "race" ? "ภาพ" : "ด่าน"} ${index + 1}/${total} · ${scene.name}`;
     $("found-list").innerHTML = "";
+
+    if (isPhoto(scene)) {
+      $("pic-a").innerHTML = $("pic-b").innerHTML = `<div class="pic-loading">📷 กำลังโหลดรูป…</div>`;
+      state.diffs = shuffle([...scene.diffs]).slice(0, DIFFS_PER_LEVEL);
+      try {
+        const [a, b] = await buildPhotoPics(scene, state.diffs);
+        if (token !== state.token) return;
+        $("pic-a").innerHTML = "";
+        $("pic-b").innerHTML = "";
+        $("pic-a").append(photoStack(a, scene));
+        $("pic-b").append(photoStack(b, scene));
+      } catch (e) {
+        if (token !== state.token) return;
+        // โหลดรูปไม่ได้ (ไม่มีอินเทอร์เน็ต) → ใช้ฉากการ์ตูนที่ยังไม่ได้เล่นแทน
+        const used = new Set(state.levels);
+        scene = SCENES.find((s) => !used.has(s)) || pick(SCENES);
+        state.levels[index] = scene;
+        $("level-name").textContent = `${state.mode === "race" ? "ภาพ" : "ด่าน"} ${index + 1}/${total} · ${scene.name}`;
+      }
+    }
+    if (!isPhoto(scene)) {
+      const candidates = scene.parts.filter((p) => typeof p !== "string");
+      state.diffs = shuffle([...candidates]).slice(0, DIFFS_PER_LEVEL);
+      $("pic-a").innerHTML = sceneSVG(scene, false);
+      $("pic-b").innerHTML = sceneSVG(scene, true);
+    }
+    state.scene = scene;
     renderStatus();
-    startTimer();
-    toast(`ด่าน ${index + 1}: ${scene.name} — หาจุดต่าง 5 จุด!`, 1800);
+    if (state.mode !== "race") {
+      startTimer();
+      toast(`ด่าน ${index + 1}: ${scene.name} — หาจุดต่าง 5 จุด!`, 1800);
+    } else if (index > 0) {
+      toast(`ภาพที่ ${index + 1}: ${scene.name} — หาจุดต่าง 5 จุด!`, 1800);
+    }
   }
 
   function levelFound() {
-    stopTimer();
-    state.findTime += Date.now() - state.levelStart;
+    if (state.mode !== "race") {
+      stopTimer();
+      state.findTime += Date.now() - state.levelStart;
+    }
     sounds.levelDone();
-    confetti(70);
-    toast("🎉 หาครบ 5 จุดแล้ว! เก่งมาก", 1600);
-    setTimeout(() => openMath(), 1500);
+    confetti(50);
+    toast(state.mode === "race" ? "🎉 ครบ 5 จุด! ตอบคณิตให้ถูกเพื่อวิ่งต่อ" : "🎉 หาครบ 5 จุดแล้ว! เก่งมาก", 1600);
+    const token = state.token;
+    setTimeout(() => { if (token === state.token) openMath(); }, 1300);
   }
 
   // ---------- คำถามคณิต ----------
   function openMath() {
-    state.math = { questions: makeMathQuestions(state.level), index: 0, locked: false };
-    const last = state.level === SCENES.length - 1;
-    $("m-sub").textContent = last ? "ตอบให้ถูก 3 ข้อ เพื่อจบเกม!" : "ตอบให้ถูก 3 ข้อ ก่อนไปด่านต่อไป";
+    const levelIndex = state.mode === "race" ? state.level : state.level;
+    state.math = { questions: makeMathQuestions(levelIndex, state.scene), index: 0, locked: false };
+    const last = state.level === state.levels.length - 1;
+    $("m-sub").textContent = state.mode === "race"
+      ? "ตอบถูก 1 ข้อ = วิ่งไปข้างหน้า 1 ช่วง 🏃"
+      : last ? "ตอบให้ถูก 3 ข้อ เพื่อจบเกม!" : "ตอบให้ถูก 3 ข้อ ก่อนไปด่านต่อไป";
     $("math-modal").classList.remove("hidden");
     showMathQuestion();
   }
@@ -1053,22 +1849,26 @@
     const m = state.math;
     if (m.locked || btn.disabled) return;
     const q = m.questions[m.index];
+    const token = state.token;
     if (value === q.answer) {
       m.locked = true;
       btn.classList.add("correct");
       document.querySelectorAll(".choice").forEach((b) => (b.disabled = true));
-      $("m-feedback").textContent = "ถูกต้อง! 🎉";
+      $("m-feedback").textContent = state.mode === "race" ? "ถูกต้อง! วิ่งเลย! 🏃💨" : "ถูกต้อง! 🎉";
       $("m-feedback").className = "feedback good";
       sounds.correct();
+      if (state.mode === "race") advancePlayer();
       setTimeout(() => {
+        if (token !== state.token) return;
         m.index++;
         if (m.index < m.questions.length) return showMathQuestion();
+        if (state.mode === "race") return nextAfterMath();
         renderMathDots();
         $("m-q").className = "m-q word";
         $("m-q").textContent = "✅ ตอบถูกครบ 3 ข้อแล้ว!";
         $("m-choices").classList.add("hidden");
         $("m-feedback").textContent = "";
-        const last = state.level === SCENES.length - 1;
+        const last = state.level === state.levels.length - 1;
         $("m-next").textContent = last ? "🏆 ดูผลรางวัล" : `ไปด่านที่ ${state.level + 2} ▶`;
         $("m-next").classList.remove("hidden");
       }, 900);
@@ -1084,41 +1884,171 @@
 
   function nextAfterMath() {
     $("math-modal").classList.add("hidden");
-    if (state.level < SCENES.length - 1) startLevel(state.level + 1);
+    if (state.level < state.levels.length - 1) startLevel(state.level + 1);
+    else if (state.mode === "race") finishRace();
     else showFinal();
+  }
+
+  // ---------- จบการแข่ง ----------
+  async function finishRace() {
+    const token = state.token;
+    const me = state.race.runners[0];
+    if (!me.finishedAt) crossFinish(me); // กันพลาด: ครบทุกขั้นแล้วต้องถึงเส้นชัย
+    renderRunners();
+    state.scene = null;
+    await sleep(1800);
+    if (token !== state.token) return;
+    stopBots();
+    stopTimer();
+    showRaceResult();
+  }
+
+  function showRaceResult() {
+    const race = state.race;
+    const me = race.runners[0];
+    const place = rankOf(me);
+    const order = [...finishOrder(), ...race.runners.filter((r) => !r.finishedAt).sort((a, b) => b.progress - a.progress)];
+
+    $("f-emoji").textContent = ["🏆", "🥈", "🥉", "🏅"][place - 1];
+    $("f-title").textContent = place === 1 ? "🎉 ชนะเลิศ! เข้าเส้นชัยที่ 1 🎉" : `🎉 เข้าเส้นชัยอันดับ ${place}!`;
+    $("f-text").textContent = place === 1 ? "สุดยอด! หาจุดต่างได้ไวกว่าบอททุกตัว" : "เก่งมาก! ลองอีกครั้ง เดี๋ยวก็แซงบอทได้แน่";
+
+    // แท่นรับรางวัล: 2 - 1 - 3
+    const podium = $("podium");
+    podium.innerHTML = "";
+    [1, 0, 2].forEach((i) => {
+      const r = order[i];
+      if (!r) return;
+      const box = el("div", `place p${i + 1}${r.me ? " me" : ""}`);
+      box.innerHTML = `<div class="who">${faceHTML(r.char)}</div><div class="pname"></div><div class="block">${i + 1}</div>`;
+      box.querySelector(".pname").textContent = r.name;
+      podium.append(box);
+    });
+    const list = $("ranking");
+    list.innerHTML = "";
+    order.forEach((r, i) => {
+      const li = el("li", r.me ? "me" : "");
+      li.innerHTML = `<span class="r-no">${i + 1}.</span><span class="r-face">${faceHTML(r.char)}</span><span class="r-name"></span><span class="r-time"></span>`;
+      li.querySelector(".r-name").textContent = r.name;
+      li.querySelector(".r-time").textContent = r.finishedAt ? fmt(r.finishedAt - race.start) : `ยังไม่ถึง (${Math.round((r.progress / RACE_STEPS) * 100)}%)`;
+      list.append(li);
+    });
+    podium.classList.remove("hidden");
+    list.classList.remove("hidden");
+    $("f-stars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= 4 - place ? "" : "off"}">⭐</span>`).join("");
+    $("f-time").textContent = fmt(me.finishedAt - race.start);
+    $("f-time").nextSibling.textContent = "เวลาที่ใช้วิ่ง";
+    fillStats();
+    showScreen("final-screen");
+    sounds.win();
+    confetti(place === 1 ? 160 : 90);
+  }
+
+  function fillStats() {
+    $("f-wrong").textContent = `${state.wrongClicks} ครั้ง`;
+    $("f-math").textContent = `${state.mathMistakes} ครั้ง`;
+    $("f-hint").textContent = `${state.hintsUsed} ครั้ง`;
   }
 
   function showFinal() {
     const penalty = state.wrongClicks + state.mathMistakes + state.hintsUsed * 2;
     const stars = penalty <= 4 ? 3 : penalty <= 10 ? 2 : 1;
+    $("f-emoji").textContent = "🏆";
+    $("f-title").textContent = "🎉 เก่งมาก! 🎉";
+    $("f-text").textContent = `จับผิดภาพครบทั้ง ${state.levels.length} ด่าน และตอบคำถามคณิตผ่านทุกด่านแล้ว`;
+    $("podium").classList.add("hidden");
+    $("ranking").classList.add("hidden");
     $("f-stars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "" : "off"}">⭐</span>`).join("");
     $("f-time").textContent = fmt(state.findTime);
-    $("f-wrong").textContent = `${state.wrongClicks} ครั้ง`;
-    $("f-math").textContent = `${state.mathMistakes} ครั้ง`;
-    $("f-hint").textContent = `${state.hintsUsed} ครั้ง`;
+    $("f-time").nextSibling.textContent = "เวลาที่ใช้หาจุดต่าง";
+    fillStats();
     showScreen("final-screen");
     sounds.win();
     confetti(140);
   }
 
   function goHome() {
+    state.token++;
     stopTimer();
+    stopBots();
+    state.scene = null;
     $("math-modal").classList.add("hidden");
+    $("countdown").classList.add("hidden");
+    renderSetup();
     showScreen("start-screen");
   }
 
-  // ---------- ปุ่มต่าง ๆ ----------
-  function renderDifficulty() {
-    document.querySelectorAll("#difficulty .option").forEach((b) =>
-      b.classList.toggle("selected", Number(b.dataset.level) === state.difficulty)
-    );
+  // ======================================================================
+  //  หน้าแรก: โหมด / ตัวละคร / ความเร็วบอท / ระดับคณิต
+  // ======================================================================
+  const SETTINGS_KEY = "spot-diff-settings";
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        mode: state.mode, difficulty: state.difficulty, botSpeed: state.botSpeed,
+        charGroup: state.charGroup, charId: state.charId, playerName: state.playerName,
+      }));
+    } catch (e) {}
   }
+
+  function loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      if (["race", "classic"].includes(s.mode)) state.mode = s.mode;
+      if ([0, 1, 2].includes(s.difficulty)) state.difficulty = s.difficulty;
+      if ([0, 1, 2].includes(s.botSpeed)) state.botSpeed = s.botSpeed;
+      if (CHARACTERS[s.charGroup]) state.charGroup = s.charGroup;
+      if (ALL_CHARACTERS.some((c) => c.id === s.charId)) state.charId = s.charId;
+      if (typeof s.playerName === "string") $("player-name").value = s.playerName;
+    } catch (e) {}
+  }
+
+  function renderSetup() {
+    document.querySelectorAll("#mode-options .option").forEach((b) => b.classList.toggle("selected", b.dataset.mode === state.mode));
+    document.querySelectorAll("#difficulty .option").forEach((b) => b.classList.toggle("selected", Number(b.dataset.level) === state.difficulty));
+    document.querySelectorAll("#bot-speed .option").forEach((b) => b.classList.toggle("selected", Number(b.dataset.speed) === state.botSpeed));
+    $("bot-setting").classList.toggle("hidden", state.mode !== "race");
+
+    const tabs = $("char-tabs");
+    tabs.innerHTML = "";
+    Object.entries(CHARACTERS).forEach(([key, g]) => {
+      const t = el("button", "btn char-tab" + (key === state.charGroup ? " selected" : ""), g.label);
+      t.addEventListener("click", () => { state.charGroup = key; renderSetup(); });
+      tabs.append(t);
+    });
+    const grid = $("char-grid");
+    grid.innerHTML = "";
+    CHARACTERS[state.charGroup].list.forEach((c) => {
+      const b = el("button", "btn char-btn" + (c.id === state.charId ? " selected" : ""));
+      b.innerHTML = `${faceHTML(c)}<small></small>`;
+      b.querySelector("small").textContent = c.name;
+      b.title = c.name;
+      b.addEventListener("click", () => { state.charId = c.id; tone(700, 0.08); renderSetup(); });
+      grid.append(b);
+    });
+
+    // เลขข้อของหัวข้อ (ซ่อนความเร็วบอทในโหมดปกติ)
+    let n = 0;
+    document.querySelectorAll("#start-screen [data-step]").forEach((label) => {
+      if (label.closest(".hidden")) return;
+      label.textContent = `${++n}. ${label.textContent.replace(/^\d+\.\s*/, "")}`;
+    });
+
+    $("rules").innerHTML = state.mode === "race"
+      ? "🏁 แข่งวิ่งกับบอท 3 ตัว ผ่าน <b>3 ภาพ</b> ใครถึงเส้นชัยก่อนชนะ!<br>🔍 หาจุดต่างเจอ 1 จุด = <b>วิ่ง 1 ช่วง</b> (ภาพละ 5 จุด)<br>🧮 หาครบแล้ว ตอบคณิตถูก 1 ข้อ = <b>วิ่ง 1 ช่วง</b> (ภาพละ 3 ข้อ)<br>💡 กดคำใบ้ได้ภาพละ 1 ครั้ง · บอทวิ่งตลอดเวลา รีบหน่อยนะ!"
+      : "🔍 ดูภาพ 2 ภาพ แล้ว<b>แตะจุดที่ต่างกัน</b> (แตะภาพไหนก็ได้)<br>✅ หาให้ครบ <b>5 จุด</b> ในแต่ละด่าน มีทั้งหมด 5 ด่าน (มีรูปถ่ายจริงด้วย)<br>🧮 หาครบแล้ว ต้อง<b>ตอบคำถามคณิตให้ถูก 3 ข้อ</b> ก่อนไปด่านต่อไป<br>💡 ติดตรงไหน กดคำใบ้ได้ด่านละ 1 ครั้ง";
+    $("start-btn").textContent = state.mode === "race" ? "พร้อมแข่ง! 🏁" : "เริ่มเล่น ▶️";
+  }
+
+  document.querySelectorAll("#mode-options .option").forEach((b) =>
+    b.addEventListener("click", () => { state.mode = b.dataset.mode; saveSettings(); renderSetup(); })
+  );
   document.querySelectorAll("#difficulty .option").forEach((b) =>
-    b.addEventListener("click", () => {
-      state.difficulty = Number(b.dataset.level);
-      try { localStorage.setItem("spot-diff-level", state.difficulty); } catch (e) {}
-      renderDifficulty();
-    })
+    b.addEventListener("click", () => { state.difficulty = Number(b.dataset.level); saveSettings(); renderSetup(); })
+  );
+  document.querySelectorAll("#bot-speed .option").forEach((b) =>
+    b.addEventListener("click", () => { state.botSpeed = Number(b.dataset.speed); saveSettings(); renderSetup(); })
   );
   $("pic-a").addEventListener("click", onPicClick);
   $("pic-b").addEventListener("click", onPicClick);
@@ -1141,11 +2071,8 @@
     if (btn) btn.click();
   });
 
-  try {
-    const saved = Number(localStorage.getItem("spot-diff-level"));
-    if ([0, 1, 2].includes(saved)) state.difficulty = saved;
-  } catch (e) {}
-  renderDifficulty();
+  loadSettings();
+  renderSetup();
 </script>
 </body>
 </html>
