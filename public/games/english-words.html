@@ -1296,11 +1296,40 @@
   }
 
   // ---------- เสียง ----------
+  // มือถือ (iPhone/Android) จะไม่ยอมเล่นเสียงจนกว่าผู้ใช้จะแตะจอ จึง "ปลดล็อกเสียง" ตอนแตะครั้งแรก
   let audioCtx = null;
+  let audioUnlocked = false;
+  function getAudioCtx() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try {
+      const ctx = getAudioCtx();
+      const src = ctx.createBufferSource(); // เล่นเสียงเงียบ 1 ครั้ง ให้ระบบยอมเล่นเสียงต่อจากนี้
+      src.buffer = ctx.createBuffer(1, 1, 22050);
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) {}
+    try {
+      if ("speechSynthesis" in window) {
+        const u = new SpeechSynthesisUtterance(" "); // iPhone: ต้องพูดครั้งแรกจากการแตะ
+        u.volume = 0;
+        speechSynthesis.speak(u);
+      }
+    } catch (e) {}
+  }
+  ["pointerdown", "touchend", "click", "keydown"].forEach((type) =>
+    document.addEventListener(type, unlockAudio, { capture: true, passive: true })
+  );
+
   function playTone(freq, duration, delay = 0, type = "sine") {
     if (!state.soundOn) return;
     try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      getAudioCtx();
       const t = audioCtx.currentTime + delay;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -1322,16 +1351,48 @@
   };
 
   // อ่านออกเสียงภาษาอังกฤษด้วยเสียงของเบราว์เซอร์
+  // รายชื่อเสียงในเครื่องโหลดช้า (โดยเฉพาะ Android) จึงเก็บไว้เมื่อพร้อม
+  let englishVoice = null;
+  let warnedNoVoice = false;
+  function pickEnglishVoice() {
+    if (!("speechSynthesis" in window)) return;
+    const voices = speechSynthesis.getVoices();
+    const en = voices.filter((v) => /^en[-_]/i.test(v.lang) || v.lang.toLowerCase() === "en");
+    englishVoice =
+      en.find((v) => /en[-_]us/i.test(v.lang) && v.localService) ||
+      en.find((v) => /en[-_](us|gb)/i.test(v.lang)) ||
+      en[0] || null;
+  }
+  if ("speechSynthesis" in window) {
+    pickEnglishVoice();
+    speechSynthesis.addEventListener?.("voiceschanged", pickEnglishVoice);
+  }
+  const spoken = []; // เก็บไว้ไม่ให้ถูกลบระหว่างพูด (บั๊กของ Chrome ทำให้เสียงหายกลางคัน)
+
   function speak(text) {
     if (!state.soundOn || !("speechSynthesis" in window)) return;
     try {
-      speechSynthesis.cancel();
+      if (!englishVoice) pickEnglishVoice();
+      const voices = speechSynthesis.getVoices();
+      if (voices.length && !englishVoice && !warnedNoVoice) {
+        warnedNoVoice = true;
+        setFeedback("🔇 เครื่องนี้ไม่มีเสียงอ่านภาษาอังกฤษ ลองเปิดใน Chrome หรือ Safari", "bad");
+      }
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "en-US";
+      utter.lang = englishVoice ? englishVoice.lang : "en-US";
+      if (englishVoice) utter.voice = englishVoice;
       utter.rate = 0.85;
-      const voice = speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
-      if (voice) utter.voice = voice;
-      speechSynthesis.speak(utter);
+      utter.volume = 1;
+      spoken.push(utter);
+      utter.onend = utter.onerror = () => spoken.splice(spoken.indexOf(utter), 1);
+      // ยกเลิกเฉพาะตอนกำลังพูดอยู่ (iPhone: cancel แล้ว speak ทันที เสียงมักหาย)
+      if (speechSynthesis.speaking || speechSynthesis.pending) {
+        speechSynthesis.cancel();
+        setTimeout(() => speechSynthesis.speak(utter), 80);
+      } else {
+        speechSynthesis.resume(); // Android บางเครื่องค้างอยู่ในสถานะหยุดชั่วคราว
+        speechSynthesis.speak(utter);
+      }
     } catch (e) {}
   }
 

@@ -163,7 +163,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 14px;
   }
-  .images figure { margin: 0; }
+  .images figure { margin: 0; position: relative; }
   .images figcaption {
     text-align: center;
     font-weight: 800;
@@ -177,6 +177,7 @@
     cursor: crosshair;
     line-height: 0;
     touch-action: manipulation;
+    margin: 0 auto; /* JS กำหนด max-width ให้ภาพพอดีความสูงจอ */
   }
   .pic svg { width: 100%; height: auto; display: block; }
   .pic.cooldown { cursor: wait; }
@@ -574,14 +575,83 @@
   @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 
   @media (max-width: 680px) {
-    .char-grid { grid-template-columns: repeat(4, 1fr); }
+    /* มือถือ: ภาพ 2 ภาพเรียงบน-ล่าง ย่อให้อยู่ในจอเดียว ไม่ต้องเลื่อน */
+    .hud { margin-bottom: 6px; gap: 6px; }
+    .icon-btn { width: 38px; height: 38px; font-size: 17px; }
+    .level-name { font-size: 14px; }
+    .chip { font-size: 12px; padding: 4px 8px; }
+    .status { gap: 4px 10px; margin-bottom: 6px; }
+    .found-dots { font-size: 14px; gap: 4px; }
+    .found-dots i { width: 18px; height: 18px; border-width: 2px; font-size: 11px; }
+    .wrong-count { font-size: 14px; }
+    .hint-btn { font-size: 14px; padding: 5px 10px; }
+    .images figcaption {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      margin: 0;
+      font-size: 11px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 8px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .pic { border-width: 3px; border-radius: 14px; }
+    .found-list { display: none; }
+    .race { margin-bottom: 6px; border-width: 3px; }
+    .stands { height: 36px; font-size: 12px; line-height: 13px; }
+    .stands .banner { font-size: 13px; }
+    .track { padding: 3px 0; }
+    .lane { height: 24px; }
+    .runner .body { font-size: 19px; }
+    .line { top: 3px; bottom: 3px; }
+    .line span { font-size: 8px; }    .char-grid { grid-template-columns: repeat(4, 1fr); }
     .runner .tag { display: none; }
     .runner.me .tag { display: inline; }
     body { padding: 8px; }
     .card { padding: 14px; border-radius: 22px; }
-    .images { grid-template-columns: 1fr; gap: 10px; }
+    .images { grid-template-columns: 1fr; gap: 6px; }
     .options { grid-template-columns: 1fr 1fr 1fr; }
     .option { font-size: 15px; }
+  }
+  /* จอเตี้ย (แล็ปท็อป / แท็บเล็ตแนวนอน): ลู่วิ่งเล็กลง ให้ภาพใหญ่ขึ้น */
+  @media (max-height: 820px) {
+    .race { margin-bottom: 6px; border-width: 3px; }
+    .stands { height: 36px; font-size: 12px; line-height: 13px; }
+    .stands .banner { font-size: 13px; }
+    .track { padding: 3px 0; }
+    .lane { height: 24px; }
+    .runner .body { font-size: 19px; }
+    .line { top: 3px; bottom: 3px; }
+    .hud { margin-bottom: 6px; }
+    .status { margin-bottom: 6px; }
+    .images figcaption { margin-bottom: 2px; font-size: 14px; }
+    .found-list { margin-top: 6px; }
+  }
+  /* มือถือแนวนอน (จอเตี้ยมาก) */
+  @media (max-height: 500px) {
+    body { padding: 4px; }
+    .card { padding: 8px 12px; border-radius: 16px; }
+    .hud { margin-bottom: 4px; }
+    .icon-btn { width: 32px; height: 32px; font-size: 15px; }
+    .level-name { font-size: 13px; }
+    .chip { font-size: 11px; padding: 3px 8px; }
+    .race { margin-bottom: 4px; }
+    .stands { height: 18px; font-size: 9px; line-height: 10px; }
+    .stands .banner { font-size: 11px; padding: 1px 10px; }
+    .lane { height: 16px; }
+    .runner .body { font-size: 13px; }
+    .runner .tag, .runner.me .tag, .line span { display: none; }
+    .status { gap: 4px 10px; margin-bottom: 4px; }
+    .found-dots { font-size: 13px; }
+    .found-dots i { width: 16px; height: 16px; font-size: 10px; border-width: 2px; }
+    .wrong-count { font-size: 13px; }
+    .hint-btn { font-size: 13px; padding: 4px 10px; }
+    .images { gap: 8px; }
+    .images figcaption, .found-list { display: none; }
   }
 </style>
 </head>
@@ -647,7 +717,7 @@
       <span class="wrong-count" id="wrong-count">❌ แตะผิด 0</span>
       <button class="btn btn-yellow hint-btn" id="hint-btn">💡 คำใบ้</button>
     </div>
-    <div class="images">
+    <div class="images" id="images">
       <figure>
         <figcaption>ภาพที่ 1</figcaption>
         <div class="pic" id="pic-a"></div>
@@ -1345,10 +1415,20 @@
 
   // ---------- เสียง ----------
   let audioCtx = null;
+  // มือถือจะไม่ยอมเล่นเสียงจนกว่าจะแตะจอ จึงปลุกระบบเสียงตอนแตะครั้งแรก
+  ["pointerdown", "touchend", "click"].forEach((type) =>
+    document.addEventListener(type, () => {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      } catch (e) {}
+    }, { capture: true, passive: true })
+  );
   function tone(freq, dur, { type = "sine", vol = 0.2, delay = 0 } = {}) {
     if (!state.soundOn) return;
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {}); // มือถือ: ต้องปลุกหลังแตะจอ
       const t = audioCtx.currentTime + delay;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -1366,6 +1446,7 @@
     if (!state.soundOn) return;
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {}); // มือถือ: ต้องปลุกหลังแตะจอ
       const t = audioCtx.currentTime + delay;
       const buf = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * dur), audioCtx.sampleRate);
       const data = buf.getChannelData(0);
@@ -1441,6 +1522,29 @@
     wrap.insertAdjacentHTML("beforeend", `<svg viewBox="0 0 400 ${scene.viewH.toFixed(1)}" aria-hidden="true"><g class="marks"></g></svg>`);
     return wrap;
   }
+
+  // ให้ภาพทั้ง 2 ภาพอยู่ในจอเดียว ไม่ต้องเลื่อนขึ้นลง: คำนวณจากความสูงจอที่เหลือใต้ลู่วิ่ง/แถบสถานะ
+  function fitPics() {
+    if ($("game-screen").classList.contains("hidden") || !state.levels.length) return;
+    const scene = state.levels[state.level];
+    if (!scene) return;
+    const ratio = 400 / viewHeight(scene);
+    const box = $("images");
+    const stacked = getComputedStyle(box).gridTemplateColumns.trim().split(/\s+/).length === 1;
+    const top = box.getBoundingClientRect().top + window.scrollY;
+    const caption = stacked ? 0 : (box.querySelector("figcaption")?.offsetHeight || 0) + 6;
+    const list = $("found-list");
+    const listH = getComputedStyle(list).display === "none" ? 0 : Math.max(list.offsetHeight, 34) + 8;
+    const cardPad = parseFloat(getComputedStyle(box.closest(".card")).paddingBottom) || 14;
+    const bodyPad = parseFloat(getComputedStyle(document.body).paddingBottom) || 8;
+    const reserve = listH + cardPad + bodyPad + 6; // พื้นที่ใต้ภาพ: รายการจุดที่เจอ + ขอบการ์ด
+    const avail = window.innerHeight - top - reserve;
+    const perPic = (stacked ? (avail - 6) / 2 : avail) - caption - 8; // 8 = ขอบภาพ
+    const maxW = Math.max(110, perPic * ratio + 8);
+    box.querySelectorAll(".pic").forEach((p) => (p.style.maxWidth = `${Math.round(maxW)}px`));
+  }
+  window.addEventListener("resize", () => requestAnimationFrame(fitPics));
+  window.addEventListener("orientationchange", () => setTimeout(fitPics, 300));
 
   function svgPoint(svg, evt) {
     const pt = svg.createSVGPoint();
@@ -1752,6 +1856,8 @@
     const total = state.levels.length;
     $("level-name").textContent = `${state.mode === "race" ? "ภาพ" : "ด่าน"} ${index + 1}/${total} · ${scene.name}`;
     $("found-list").innerHTML = "";
+    window.scrollTo(0, 0);
+    requestAnimationFrame(fitPics);
 
     if (isPhoto(scene)) {
       $("pic-a").innerHTML = $("pic-b").innerHTML = `<div class="pic-loading">📷 กำลังโหลดรูป…</div>`;
@@ -1780,6 +1886,7 @@
     }
     state.scene = scene;
     renderStatus();
+    requestAnimationFrame(fitPics); // ฉากอาจเปลี่ยนเป็นการ์ตูน (สัดส่วนภาพต่างกัน)
     if (state.mode !== "race") {
       startTimer();
       toast(`ด่าน ${index + 1}: ${scene.name} — หาจุดต่าง 5 จุด!`, 1800);
