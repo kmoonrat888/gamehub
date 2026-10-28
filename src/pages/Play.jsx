@@ -28,7 +28,7 @@ export default function Play() {
   return (
     <div className="play-page">
       <header className="play-bar" style={{ "--accent": game.color }}>
-        <Link to="/" className="btn bar-btn">
+        <Link to={`/c/${game.category}`} className="btn bar-btn" title="กลับไปหมวดเกม">
           ◀ <span className="hide-sm">รวมเกม</span>
         </Link>
         <h1>

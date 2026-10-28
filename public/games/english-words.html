@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกมคำศัพท์ภาษาอังกฤษ</title>
+<style>
+  :root {
+    --bg1: #dfe5ff;
+    --bg2: #d3efff;
+    --bg3: #d2f5ec;
+    --card: #ffffff;
+    --ink: #33295a;
+    --muted: #6d6590;
+    --primary: #ff7a59;
+    --green: #2fb874;
+    --red: #f2506a;
+    --yellow: #ffc93c;
+    --blue: #4d8dff;
+    --purple: #9a6cff;
+    --orange: #ff9f1c;
+    --soft: #f2effb;
+    --shadow: 0 8px 0 rgba(51, 41, 90, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { height: 100%; }
+
+  body {
+    min-height: 100%;
+    font-family: "Leelawadee UI", "Segoe UI", "Tahoma", "Noto Sans Thai", sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2) 50%, var(--bg3));
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .screen {
+    width: 100%;
+    max-width: 580px;
+    background: var(--card);
+    border-radius: 32px;
+    box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.08);
+    padding: 26px 24px;
+    text-align: center;
+    animation: pop 0.35s ease;
+  }
+
+  .hidden { display: none !important; }
+
+  h1 { font-size: clamp(26px, 7vw, 38px); margin-bottom: 2px; }
+  .subtitle { font-size: 17px; opacity: 0.75; margin-bottom: 20px; }
+  .mascot { font-size: 64px; display: inline-block; animation: bounce 1.6s ease-in-out infinite; }
+
+  .btn {
+    font-family: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.2s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18); }
+  .btn:disabled { cursor: default; }
+
+  /* ---------- หน้าตั้งค่า ---------- */
+  .setting { margin-bottom: 18px; }
+  .setting-label { font-size: 18px; font-weight: 700; text-align: left; margin: 0 4px 10px; }
+  .options { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .options.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .option {
+    background: var(--soft);
+    color: var(--ink);
+    border: 3px solid transparent;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+    font-size: 17px;
+    padding: 8px 14px;
+    border-radius: 16px;
+  }
+  .options.grid .option { padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .option small { font-size: 13px; font-weight: 600; opacity: 0.7; }
+  .option.selected { background: #fff4d1; border-color: var(--yellow); animation: pop 0.25s ease; }
+  .setting-note { font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 8px; }
+  .start-btn { width: 100%; font-size: 26px; padding: 16px; margin-top: 6px; background: var(--green); }
+
+  /* ---------- หน้าเล่นเกม ---------- */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .icon-btn {
+    background: var(--soft);
+    color: var(--ink);
+    font-size: 22px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
+  .score { background: #fff4d1; padding: 6px 14px; border-radius: 14px; }
+  .progress { height: 14px; background: #eee9fb; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--yellow), var(--primary));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .prompt {
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .prompt .picture {
+    width: min(100%, 250px);
+    aspect-ratio: 1;
+    border-radius: 24px;
+    background: var(--soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    animation: pop 0.4s ease;
+  }
+  .prompt .word {
+    font-size: clamp(32px, 10vw, 52px);
+    font-weight: 800;
+    letter-spacing: 1px;
+    overflow-wrap: anywhere;
+    animation: pop 0.4s ease;
+  }
+  .prompt .question-text { font-size: 18px; font-weight: 700; opacity: 0.75; }
+  .prompt .thai { font-size: 22px; font-weight: 800; color: var(--purple); }
+  .speak-btn { background: var(--blue); font-size: 18px; padding: 6px 16px; border-radius: 14px; }
+
+  /* รูปภาพ (SVG หรือ emoji) */
+  .pic-svg { width: 100%; height: 100%; display: block; }
+  .pic-emoji {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.1em;
+    font-size: clamp(64px, 20vw, 96px);
+    line-height: 1.1;
+  }
+  /* รูปถ่ายจริง: กรอบตามสัดส่วนภาพ + ชั้นวาดวงไฮไลต์ทับ (หมวดร่างกาย) */
+  .photo-wrap { position: relative; width: 100%; height: 100%; }
+  .photo-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .photo-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .picture, .choice-pic, .r-pic { display: flex; align-items: center; justify-content: center; }
+  .credit {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .options.grid.two { grid-template-columns: 1fr 1fr; }
+  .net-note { font-size: 13px; font-weight: 600; color: var(--muted); margin: -6px 0 14px; }
+  .hl {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: hlpulse 0.9s ease-in-out infinite alternate;
+  }
+
+  .feedback { font-size: 22px; font-weight: 800; min-height: 32px; margin-bottom: 4px; }
+  .feedback.good { color: var(--green); animation: pop 0.3s ease; }
+  .feedback.bad { color: var(--red); animation: pop 0.3s ease; }
+  .meaning { font-size: 19px; font-weight: 700; min-height: 28px; margin-bottom: 10px; line-height: 1.5; }
+  .meaning .example { display: block; font-size: 16px; font-weight: 600; color: var(--muted); }
+
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .choice {
+    font-size: clamp(22px, 6.5vw, 30px);
+    padding: 18px 6px;
+    background: var(--primary);
+    position: relative;
+    overflow-wrap: anywhere;
+  }
+  .choice.long { font-size: clamp(16px, 4.6vw, 22px); }
+  .choice:nth-child(2) { background: var(--blue); }
+  .choice:nth-child(3) { background: var(--purple); }
+  .choice:nth-child(4) { background: var(--orange); }
+  .choice.pic { padding: 6px; }
+  .choice.pic .choice-pic {
+    width: 100%;
+    height: clamp(110px, 32vw, 150px);
+    margin: 0 auto;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .choice.pic .choice-pic .pic-emoji { font-size: clamp(38px, 11vw, 56px); }
+  .choice .key {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 13px;
+    opacity: 0.7;
+    z-index: 1;
+  }
+  .choice.pic .key {
+    top: 10px;
+    left: 12px;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 1;
+  }
+  .choice.correct { background: var(--green) !important; animation: pop 0.35s ease; }
+  .choice.wrong { background: #c9c3d9 !important; animation: shake 0.4s ease; }
+  .choice.pic.wrong .choice-pic { opacity: 0.35; }
+
+  /* สะกดคำ */
+  .slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; margin-bottom: 18px; }
+  .slot-word { display: flex; gap: 6px; }
+  .slots.long .slot-word { gap: 3px; }
+  .slot {
+    width: 34px;
+    height: 46px;
+    border-bottom: 4px solid var(--ink);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 44px;
+  }
+  .slot.fixed { border-bottom-color: transparent; color: var(--muted); }
+  .slot.gap { width: 16px; }
+  .slots.long { gap: 6px 14px; }
+  .slots.long .slot { width: 22px; font-size: 22px; }
+  .slots.long .slot.gap { width: 12px; }
+  .slot.filled { color: var(--green); animation: pop 0.25s ease; }
+  .tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .tile { width: 54px; height: 58px; font-size: 28px; background: var(--purple); }
+  .tile.used { visibility: hidden; }
+  .tile.wrong { animation: shake 0.4s ease; background: var(--red); }
+
+  /* ---------- หน้าสรุปผล ---------- */
+  .stars { font-size: 60px; margin: 8px 0; letter-spacing: 6px; }
+  .stars span { display: inline-block; animation: pop 0.5s ease backwards; }
+  .stars .off { filter: grayscale(1); opacity: 0.3; }
+  .result-score { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .result-msg { font-size: 19px; margin-bottom: 18px; }
+  .review { text-align: left; background: #faf8ff; border-radius: 20px; padding: 14px; margin-bottom: 20px; }
+  .review h2 { font-size: 19px; margin-bottom: 8px; text-align: center; }
+  .review-row {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px;
+    border-bottom: 1px dashed #e2dcf5;
+  }
+  .review-row:last-child { border-bottom: none; }
+  .review-row .r-pic { width: 60px; height: 60px; border-radius: 12px; background: #fff; overflow: hidden; }
+  .review-row .r-pic .pic-emoji { font-size: 26px; }
+  .review-row .r-word { font-size: 19px; font-weight: 800; }
+  .review-row .r-thai { font-size: 15px; opacity: 0.75; }
+  .review-row .speak-btn { font-size: 16px; padding: 6px 10px; }
+  .review .perfect { text-align: center; font-size: 18px; font-weight: 700; color: var(--green); }
+  .result-actions { display: grid; gap: 12px; }
+  .result-actions .btn { font-size: 22px; padding: 15px; }
+  .btn-primary { background: var(--primary); }
+  .btn-secondary { background: var(--blue); }
+
+  .confetti {
+    position: fixed;
+    top: -20px;
+    width: 12px;
+    height: 18px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 10;
+    animation: fall linear forwards;
+  }
+
+  @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+  @keyframes bounce { 50% { transform: translateY(-12px); } }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  @keyframes hlpulse { from { transform: scale(0.9); opacity: 0.75; } to { transform: scale(1.08); opacity: 1; } }
+
+  @media (max-width: 400px) {
+    .screen { padding: 22px 16px; border-radius: 24px; }
+    .slot { width: 28px; font-size: 24px; }
+    .tile { width: 48px; height: 54px; font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- หน้าตั้งค่า -->
+  <section id="start-screen" class="screen">
+    <div class="mascot" id="start-mascot">🔤</div>
+    <h1 id="start-title">เกมคำศัพท์ภาษาอังกฤษ</h1>
+    <p class="subtitle" id="start-subtitle"></p>
+    <div id="settings"></div>
+    <p class="net-note">📷 ใช้รูปถ่ายจริง ต้องต่ออินเทอร์เน็ต (ถ้าไม่มีเน็ตจะแสดงรูปวาดแทน)</p>
+    <button class="btn start-btn" id="start-btn">▶️ เริ่มเล่น</button>
+  </section>
+
+  <!-- หน้าเล่นเกม -->
+  <section id="game-screen" class="screen hidden">
+    <div class="top-bar">
+      <button class="btn icon-btn" id="home-btn" title="กลับหน้าตั้งค่า">🏠</button>
+      <span id="counter">ข้อ 1/10</span>
+      <span class="score">⭐ <span id="score">0</span></span>
+      <button class="btn icon-btn" id="sound-btn" title="เปิด/ปิดเสียง">🔊</button>
+    </div>
+    <div class="progress"><div class="progress-fill" id="progress"></div></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="meaning" id="meaning"></div>
+    <div class="choices" id="choices"></div>
+    <div id="spell" class="hidden">
+      <div class="slots" id="slots"></div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </section>
+
+  <!-- หน้าสรุปผล -->
+  <section id="result-screen" class="screen hidden">
+    <div class="mascot" id="result-mascot">🏆</div>
+    <div class="stars" id="stars"></div>
+    <div class="result-score" id="result-score"></div>
+    <p class="result-msg" id="result-msg"></p>
+    <div class="review" id="review"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
+      <button class="btn btn-secondary" id="settings-btn">⚙️ เปลี่ยนการตั้งค่า</button>
+    </div>
+  </section>
+
+<script>
+  // ======================================================================
+  //  ภาพหมวดสี: หยดสี (Gold/Silver ใช้ไล่เฉดแบบโลหะ)
+  // ======================================================================
+  const SPLAT = "M150 34 C206 34 256 70 258 124 C260 170 232 196 238 236 C242 262 212 270 204 246 C196 224 182 230 168 240 C148 254 116 252 100 236 C88 224 74 238 60 228 C40 214 54 190 48 164 C40 126 58 86 92 60 C108 46 128 34 150 34 Z";
+
+  function colorPic(w) {
+    let fill = w.hex;
+    let defs = "";
+    if (w.metal) {
+      const [light, mid, dark] = w.metal;
+      defs = `<defs><linearGradient id="metal-${w.word}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${light}"/><stop offset=".45" stop-color="${mid}"/><stop offset=".55" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>`;
+      fill = `url(#metal-${w.word})`;
+    }
+    const stroke = w.word === "white" ? `stroke="#b9b4cc" stroke-width="5"` : `stroke="rgba(0,0,0,.12)" stroke-width="3"`;
+    const shine = w.word === "white" ? "" : `<ellipse cx="112" cy="88" rx="26" ry="14" fill="#fff" opacity=".35" transform="rotate(-30 112 88)"/>`;
+    return `<svg class="pic-svg" viewBox="0 0 300 290" aria-hidden="true">${defs}<path d="${SPLAT}" fill="${fill}" ${stroke}/>${shine}</svg>`;
+  }
+
+  // ======================================================================
+  //  ภาพหมวดร่างกาย: ภาพการ์ตูนพื้นฐาน + วงไฮไลต์และลูกศรชี้
+  // ======================================================================
+  const SKIN = "#FFD9B8";
+  const OUT = "#C98A5E";
+  const HAIR = "#4A2F1D";
+  const SHORTS = "#4D8DFF";
+  const sk = `fill="${SKIN}" stroke="${OUT}" stroke-width="2.5"`;
+  const limb = (d, w = 18) =>
+    `<path d="${d}" stroke="${OUT}" stroke-width="${w + 5}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` +
+    `<path d="${d}" stroke="${SKIN}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+  const smallFace = (cx, cy) =>
+    `<circle cx="${cx - 11}" cy="${cy + 2}" r="3" fill="#2B2340"/><circle cx="${cx + 11}" cy="${cy + 2}" r="3" fill="#2B2340"/>` +
+    `<path d="M${cx - 9} ${cy + 14} Q${cx} ${cy + 21} ${cx + 9} ${cy + 14}" stroke="#7A2E2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+
+  // จุดบนเส้นโค้งกำลังสอง (ใช้วางฟันตามแนวเหงือก)
+  const qpt = (p0, p1, p2, t) => [
+    (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t ** 2 * p2[0],
+    (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1],
+  ];
+  const UPPER = [[58, 128], [150, 88], [242, 128]];   // แนวขอบล่างเหงือกบน
+  const LOWER = [[80, 196], [150, 226], [220, 196]];  // แนวขอบบนเหงือกล่าง
+
+  const BODY_SCENES = {
+    // ภาพเต็มตัวด้านหน้า
+    front: `
+      ${limb("M114 108 L98 152 L84 196")}${limb("M186 108 L202 152 L216 196")}
+      <circle cx="83" cy="204" r="11" ${sk}/><circle cx="217" cy="204" r="11" ${sk}/>
+      <rect x="120" y="200" width="24" height="84" rx="11" ${sk}/><rect x="156" y="200" width="24" height="84" rx="11" ${sk}/>
+      <ellipse cx="128" cy="288" rx="17" ry="8" ${sk}/><ellipse cx="172" cy="288" rx="17" ry="8" ${sk}/>
+      <path d="M125 250 q7 5 14 0 M161 250 q7 5 14 0" stroke="${OUT}" stroke-width="2" fill="none"/>
+      <rect x="140" y="72" width="20" height="32" ${sk}/>
+      <path d="M112 102 Q150 92 188 102 L185 194 Q150 200 115 194 Z" ${sk}/>
+      <path d="M128 130 q10 6 20 0 M152 130 q10 6 20 0" stroke="${OUT}" stroke-width="2" fill="none" opacity=".6"/>
+      <ellipse cx="150" cy="167" rx="2.5" ry="3.5" fill="${OUT}"/>
+      <path d="M114 186 L186 186 L184 224 L155 224 L150 210 L145 224 L116 224 Z" fill="${SHORTS}"/>
+      <circle cx="119" cy="50" r="7" ${sk}/><circle cx="181" cy="50" r="7" ${sk}/>
+      <circle cx="150" cy="46" r="30" ${sk}/>
+      <path d="M120 42 Q118 12 150 12 Q182 12 180 42 Q172 26 150 26 Q128 26 120 42 Z" fill="${HAIR}"/>
+      ${smallFace(150, 46)}`,
+
+    // ภาพด้านหลัง
+    back: `
+      ${limb("M114 108 L98 152 L84 196")}${limb("M186 108 L202 152 L216 196")}
+      <circle cx="83" cy="204" r="11" ${sk}/><circle cx="217" cy="204" r="11" ${sk}/>
+      <rect x="120" y="200" width="24" height="84" rx="11" ${sk}/><rect x="156" y="200" width="24" height="84" rx="11" ${sk}/>
+      <ellipse cx="132" cy="256" rx="13" ry="17" ${sk}/><ellipse cx="168" cy="256" rx="13" ry="17" ${sk}/>
+      <ellipse cx="128" cy="287" rx="13" ry="9" ${sk}/><ellipse cx="172" cy="287" rx="13" ry="9" ${sk}/>
+      <rect x="140" y="72" width="20" height="32" ${sk}/>
+      <path d="M112 102 Q150 92 188 102 L185 194 Q150 200 115 194 Z" ${sk}/>
+      <path d="M150 108 L150 184 M126 120 q10 12 20 4 M174 120 q-10 12 -20 4" stroke="${OUT}" stroke-width="2" fill="none" opacity=".6"/>
+      <path d="M114 186 L186 186 L184 224 L155 224 L150 210 L145 224 L116 224 Z" fill="${SHORTS}"/>
+      <path d="M150 190 L150 212 M126 206 q12 8 22 2 M152 208 q10 6 22 -2" stroke="#2f63c9" stroke-width="2" fill="none"/>
+      <circle cx="119" cy="50" r="7" ${sk}/><circle cx="181" cy="50" r="7" ${sk}/>
+      <circle cx="150" cy="46" r="30" ${sk}/>
+      <path d="M120 48 Q118 12 150 12 Q182 12 180 48 Q178 74 150 76 Q122 74 120 48 Z" fill="${HAIR}"/>`,
+
+    // ภาพใบหน้าใกล้ ๆ
+    face: `
+      <path d="M118 212 L118 300 L182 300 L182 212 Z" ${sk}/>
+      <path d="M143 268 q7 -9 14 0" stroke="${OUT}" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="58" cy="140" rx="17" ry="26" ${sk}/><ellipse cx="242" cy="140" rx="17" ry="26" ${sk}/>
+      <path d="M60 126 q-8 12 0 26 M240 126 q8 12 0 26" stroke="${OUT}" stroke-width="2" fill="none"/>
+      <ellipse cx="150" cy="134" rx="88" ry="98" ${sk}/>
+      <path d="M64 118 Q58 28 150 26 Q242 28 236 118 Q228 66 150 62 Q72 66 64 118 Z" fill="${HAIR}"/>
+      <path d="M96 100 Q115 90 134 100 M166 100 Q185 90 204 100" stroke="${HAIR}" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <ellipse cx="115" cy="126" rx="16" ry="11" fill="#fff" stroke="${OUT}" stroke-width="2"/>
+      <ellipse cx="185" cy="126" rx="16" ry="11" fill="#fff" stroke="${OUT}" stroke-width="2"/>
+      <circle cx="115" cy="127" r="7" fill="#5a3a22"/><circle cx="185" cy="127" r="7" fill="#5a3a22"/>
+      <circle cx="115" cy="127" r="3.5" fill="#111"/><circle cx="185" cy="127" r="3.5" fill="#111"/>
+      <path d="M99 123 Q115 109 131 123 M169 123 Q185 109 201 123" stroke="${OUT}" stroke-width="3" fill="none"/>
+      <path d="M102 117 l-5 -6 M109 113 l-2 -7 M117 112 l1 -7 M125 114 l3 -6 M172 117 l-5 -6 M179 113 l-2 -7 M187 112 l1 -7 M195 114 l3 -6" stroke="#2B2340" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M150 130 Q144 152 140 158 Q150 165 160 158" stroke="${OUT}" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="96" cy="166" r="14" fill="#FF9AA8" opacity=".5"/><circle cx="204" cy="166" r="14" fill="#FF9AA8" opacity=".5"/>
+      <path d="M120 188 Q135 178 150 185 Q165 178 180 188 Q150 194 120 188 Z" fill="#d95f6a"/>
+      <path d="M120 188 Q150 214 180 188 Q150 197 120 188 Z" fill="#ef8f98"/>
+      <path d="M138 222 Q150 228 162 222" stroke="${OUT}" stroke-width="2" fill="none" opacity=".6"/>`,
+
+    // ภาพปากอ้า (ฟัน เหงือก ลิ้น)
+    mouth: (() => {
+      let s = `<rect width="300" height="300" fill="${SKIN}"/>
+        <ellipse cx="150" cy="150" rx="132" ry="96" fill="#d95f6a"/>
+        <ellipse cx="150" cy="152" rx="112" ry="76" fill="#7A1F2B"/>
+        <path d="M58 128 Q150 60 242 128 Q150 88 58 128 Z" fill="#F8A5C2"/>
+        <ellipse cx="150" cy="186" rx="58" ry="32" fill="#F06292"/>
+        <path d="M150 166 L150 200" stroke="#d94c7c" stroke-width="3" stroke-linecap="round"/>`;
+      for (let i = 0; i < 8; i++) {
+        const [x, y] = qpt(...UPPER, (i + 0.5) / 8);
+        s += `<rect x="${(x - 10).toFixed(1)}" y="${(y - 3).toFixed(1)}" width="20" height="26" rx="5" fill="#fff" stroke="#ddd" stroke-width="1.5"/>`;
+      }
+      s += `<path d="M76 196 Q150 248 224 196 Q150 228 76 196 Z" fill="#F8A5C2"/>`;
+      for (let i = 0; i < 7; i++) {
+        const [x, y] = qpt(...LOWER, (i + 0.5) / 7);
+        s += `<rect x="${(x - 9).toFixed(1)}" y="${(y - 21).toFixed(1)}" width="18" height="23" rx="5" fill="#fff" stroke="#ddd" stroke-width="1.5"/>`;
+      }
+      return s;
+    })(),
+
+    // ภาพฝ่ามือ
+    hand: `
+      <rect x="118" y="226" width="64" height="80" ${sk}/>
+      <rect x="-12" y="-72" width="25" height="78" rx="12" transform="translate(98 206) rotate(-38)" ${sk}/>
+      <rect x="96" y="52" width="25" height="100" rx="12" ${sk}/>
+      <rect x="125" y="34" width="25" height="116" rx="12" ${sk}/>
+      <rect x="154" y="44" width="25" height="106" rx="12" ${sk}/>
+      <rect x="183" y="70" width="23" height="82" rx="11" ${sk}/>
+      <rect x="92" y="128" width="116" height="114" rx="34" ${sk}/>
+      <path d="M100 180 Q130 168 168 190 M112 158 Q150 150 200 160 M118 228 Q128 196 112 168" stroke="${OUT}" stroke-width="2.5" fill="none" opacity=".55"/>
+      <path d="M110 118 h-1 M138 108 h-1 M167 112 h-1 M195 122 h-1" stroke="${OUT}" stroke-width="2" opacity=".4"/>`,
+
+    // ภาพเท้าด้านข้าง
+    foot: `
+      <rect x="70" y="0" width="54" height="178" ${sk}/>
+      <path d="M66 156 L66 206 Q66 234 96 236 L238 236 Q264 234 264 214 Q264 196 240 192 L172 184 Q142 180 126 160 Z" ${sk}/>
+      <path d="M210 192 q4 10 0 22 M226 194 q4 10 0 20" stroke="${OUT}" stroke-width="2" fill="none" opacity=".6"/>
+      <circle cx="100" cy="170" r="9" fill="none" stroke="${OUT}" stroke-width="2.5"/>
+      <rect x="240" y="196" width="16" height="10" rx="4" fill="#ffe7ec" stroke="${OUT}" stroke-width="1.5"/>
+      <path d="M72 230 Q74 240 96 241 L238 241" stroke="#e8b48f" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+
+    // ภาพยกแขน (ใช้กับรักแร้)
+    armpit: armpitScene(false),
+    armpitHair: armpitScene(true),
+
+    // กระดูก
+    bone: `
+      <g transform="rotate(-35 150 150)" fill="#FFF8EC" stroke="#C9B48F" stroke-width="5">
+        <circle cx="66" cy="134" r="26"/><circle cx="66" cy="166" r="26"/>
+        <circle cx="234" cy="134" r="26"/><circle cx="234" cy="166" r="26"/>
+        <rect x="64" y="128" width="172" height="44" stroke="none"/>
+        <path d="M66 128 H234 M66 172 H234" fill="none"/>
+      </g>`,
+  };
+
+  function armpitScene(withHair) {
+    const hair = withHair
+      ? `<path d="M190 126 l5 7 M195 122 l6 7 M199 129 l5 6 M192 134 l6 5 M186 130 l5 6 M197 136 l5 5" stroke="${HAIR}" stroke-width="2.4" stroke-linecap="round"/>`
+      : "";
+    return `
+      ${limb("M110 126 L92 210 L86 292", 24)}${limb("M190 126 L238 76 L258 22", 24)}
+      <circle cx="260" cy="14" r="14" ${sk}/>
+      <rect x="138" y="86" width="24" height="34" ${sk}/>
+      <path d="M102 116 Q150 104 198 116 L202 300 L98 300 Z" ${sk}/>
+      <path d="M186 120 Q198 132 200 152" stroke="${OUT}" stroke-width="2.5" fill="none"/>
+      ${hair}
+      <circle cx="119" cy="58" r="7" ${sk}/><circle cx="181" cy="58" r="7" ${sk}/>
+      <circle cx="150" cy="56" r="32" ${sk}/>
+      <path d="M118 50 Q116 18 150 18 Q184 18 182 50 Q174 34 150 34 Q126 34 118 50 Z" fill="${HAIR}"/>
+      ${smallFace(150, 56)}`;
+  }
+
+  // วงไฮไลต์ + ลูกศรชี้ไปยังอวัยวะ
+  function highlight(w) {
+    const { x, y } = w;
+    const rx = w.rx || w.r;
+    const ry = w.ry || w.r;
+    const shape = `<ellipse class="hl" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="rgba(255,59,92,.14)" stroke="#FF3B5C" stroke-width="5"/>`;
+    if (w.noArrow) return shape;
+    const dirX = x < 150 ? -1 : 1;
+    let sx = x + dirX * 70;
+    let sy = y < 70 ? y + 52 : y - 52;
+    sx = Math.min(292, Math.max(8, sx));
+    sy = Math.min(292, Math.max(8, sy));
+    const dx = sx - x, dy = sy - y;
+    const len = Math.hypot(dx, dy) || 1;
+    const rEdge = Math.min(rx, ry) + (Math.max(rx, ry) - Math.min(rx, ry)) * Math.abs(dx / len) * (rx > ry ? 1 : 0) + 6;
+    const ex = x + (dx / len) * rEdge, ey = y + (dy / len) * rEdge;
+    return `${shape}<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#FF3B5C" stroke-width="5" stroke-linecap="round" marker-end="url(#arrowhead)"/>`;
+  }
+
+  function bodyPic(w) {
+    const defs = `<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#FF3B5C"/></marker></defs>`;
+    return `<svg class="pic-svg" viewBox="0 0 300 300" aria-hidden="true">${defs}<rect width="300" height="300" fill="#f7f4ff"/>${BODY_SCENES[w.scene]}${highlight(w)}</svg>`;
+  }
+
+  // ======================================================================
+  //  ภาพหมวดคำกริยา: emoji (ใช้เฉพาะที่ Windows 10 แสดงได้)
+  // ======================================================================
+  const verbPic = (w) => `<div class="pic-emoji" aria-hidden="true">${w.pic}</div>`;
+
+  // ======================================================================
+  //  คำศัพท์ทั้ง 3 หมวด
+  //  word = คำที่ใช้สะกด (ตัวพิมพ์เล็ก), display = คำที่แสดง, th = ความหมาย
+  //  group = คำที่ภาพหรือความหมายคล้ายกัน จะไม่อยู่เป็นตัวเลือกในข้อเดียวกัน
+  // ======================================================================
+  const CATEGORIES = {
+    colors: {
+      title: "สีภาษาอังกฤษ",
+      emoji: "🎨",
+      subtitle: "Colors — ทายชื่อสีเป็นภาษาอังกฤษ 13 คำ",
+      picQuestion: "สีนี้ภาษาอังกฤษคืออะไร?",
+      wordQuestion: "คำนี้คือสีไหน?",
+      pic: colorPic,
+      words: [
+        { word: "red", display: "Red", th: "สีแดง", hex: "#E53935" },
+        { word: "yellow", display: "Yellow", th: "สีเหลือง", hex: "#FDD835", group: "yellow" },
+        { word: "blue", display: "Blue", th: "สีน้ำเงิน / สีฟ้า", hex: "#1E88E5" },
+        { word: "green", display: "Green", th: "สีเขียว", hex: "#43A047" },
+        { word: "orange", display: "Orange", th: "สีส้ม", hex: "#FB8C00" },
+        { word: "purple", display: "Purple / Violet", th: "สีม่วง", hex: "#8E24AA", speakAs: "purple" },
+        { word: "pink", display: "Pink", th: "สีชมพู", hex: "#F48FB1" },
+        { word: "brown", display: "Brown", th: "สีน้ำตาล", hex: "#8D6E63" },
+        { word: "black", display: "Black", th: "สีดำ", hex: "#212121" },
+        { word: "white", display: "White", th: "สีขาว", hex: "#FFFFFF", group: "light" },
+        { word: "grey", display: "Grey (Gray)", th: "สีเทา", hex: "#9E9E9E", group: "grey", speakAs: "grey" },
+        { word: "gold", display: "Gold", th: "สีทอง", hex: "#D4A017", metal: ["#FFF3B0", "#E0A81E", "#8C6A00"], group: "yellow" },
+        { word: "silver", display: "Silver", th: "สีเงิน", hex: "#B0B0B0", metal: ["#FFFFFF", "#B8BCC4", "#6E7178"], group: "grey" },
+      ],
+    },
+
+    body: {
+      title: "ร่างกายภาษาอังกฤษ",
+      emoji: "🙆",
+      subtitle: "Body Parts — ส่วนต่าง ๆ ของร่างกาย 51 คำ",
+      picQuestion: "ส่วนที่ลูกศรชี้ ภาษาอังกฤษคืออะไร?",
+      wordQuestion: "คำนี้คือส่วนไหนของร่างกาย?",
+      pic: bodyPic,
+      // scene = ภาพพื้นฐาน, x/y/r (หรือ rx/ry) = ตำแหน่งที่ไฮไลต์
+      words: [
+        { word: "body", th: "ร่างกาย", scene: "front", x: 150, y: 150, rx: 96, ry: 146, noArrow: true },
+        { word: "head", th: "ศีรษะ", scene: "front", x: 150, y: 44, r: 36 },
+        { word: "eye", th: "ตา", scene: "face", x: 115, y: 126, r: 17, group: "eye" },
+        { word: "ear", th: "หู", scene: "face", x: 58, y: 132, r: 20, group: "ear" },
+        { word: "shoulder", th: "บ่า, ไหล่", scene: "front", x: 114, y: 106, r: 13 },
+        { word: "elbow", th: "ข้อศอก", scene: "front", x: 202, y: 152, r: 11, group: "arm" },
+        { word: "hand", th: "มือ", scene: "front", x: 217, y: 204, r: 15, group: "hand" },
+        { word: "thigh", th: "ต้นขา", scene: "front", x: 132, y: 226, r: 14, group: "leg" },
+        { word: "leg", th: "ขา", scene: "front", x: 132, y: 242, rx: 19, ry: 46, group: "leg" },
+        { word: "toenail", th: "เล็บเท้า", scene: "foot", x: 248, y: 201, r: 9, group: "foot" },
+        { word: "toe", th: "นิ้วเท้า", scene: "foot", x: 246, y: 214, r: 14, group: "foot" },
+        { word: "palm", th: "ฝ่ามือ", scene: "hand", x: 150, y: 190, r: 32, group: "hand" },
+        { word: "arm", th: "แขน", scene: "front", x: 104, y: 128, r: 16, group: "arm" },
+        { word: "mouth", th: "ปาก", scene: "face", x: 150, y: 192, rx: 36, ry: 24, group: "mouth" },
+        { word: "chest", th: "หน้าอก", scene: "front", x: 150, y: 127, r: 22 },
+        { word: "abdomen", th: "ส่วนท้อง", scene: "front", x: 150, y: 160, r: 21, group: "belly" },
+        { word: "navel", th: "สะดือ", scene: "front", x: 150, y: 167, r: 8, group: "belly" },
+        { word: "knee", th: "หัวเข่า", scene: "front", x: 168, y: 250, r: 12, group: "leg" },
+        { word: "foot", th: "เท้า", scene: "front", x: 172, y: 288, r: 16, group: "foot" },
+        { word: "eyelid", th: "เปลือกตา", scene: "face", x: 185, y: 117, r: 10, group: "eye" },
+        { word: "armpit", th: "รักแร้", scene: "armpit", x: 197, y: 138, r: 14, group: "armpit" },
+        { word: "armpit hair", th: "ขนรักแร้", scene: "armpitHair", x: 195, y: 130, r: 13, group: "armpit" },
+        { word: "forehead", th: "หน้าผาก", scene: "face", x: 150, y: 82, r: 17 },
+        { word: "eyelash", th: "ขนตา", scene: "face", x: 197, y: 108, r: 9, group: "eye" },
+        { word: "nose", th: "จมูก", scene: "face", x: 150, y: 148, r: 15 },
+        { word: "hair", th: "ผม", scene: "face", x: 150, y: 44, r: 24 },
+        { word: "eyebrow", th: "คิ้ว", scene: "face", x: 115, y: 96, r: 14, group: "eye" },
+        { word: "cheek", th: "แก้ม", scene: "face", x: 96, y: 166, r: 15 },
+        { word: "neck", th: "คอ", scene: "front", x: 150, y: 88, r: 11 },
+        { word: "chin", th: "คาง", scene: "face", x: 150, y: 222, r: 13 },
+        { word: "adam's apple", display: "Adam's apple", th: "ลูกกระเดือก", scene: "face", x: 150, y: 264, r: 11 },
+        { word: "gum", th: "เหงือก", scene: "mouth", x: 104, y: 107, r: 12, group: "mouth" },
+        { word: "tooth", th: "ฟัน (1 ซี่)", scene: "mouth", x: 185, y: 124, r: 16, group: "mouth" },
+        { word: "lip", th: "ริมฝีปาก", scene: "face", x: 165, y: 184, r: 10, group: "mouth" },
+        { word: "teeth", th: "ฟัน (หลายซี่)", scene: "mouth", x: 150, y: 124, rx: 96, ry: 28, group: "mouth" },
+        { word: "earlobe", th: "ติ่งหู", scene: "face", x: 242, y: 160, r: 10, group: "ear" },
+        { word: "index finger", th: "นิ้วชี้", scene: "hand", x: 108, y: 70, r: 14, group: "hand" },
+        { word: "tongue", th: "ลิ้น", scene: "mouth", x: 150, y: 180, r: 30, group: "mouth" },
+        { word: "thumb", th: "นิ้วหัวแม่มือ", scene: "hand", x: 60, y: 157, r: 15, group: "hand" },
+        { word: "little finger", th: "นิ้วก้อย", scene: "hand", x: 194, y: 88, r: 14, group: "hand" },
+        { word: "finger", th: "นิ้วมือ", scene: "hand", x: 137, y: 52, r: 14, group: "hand" },
+        { word: "ring finger", th: "นิ้วนาง", scene: "hand", x: 166, y: 62, r: 14, group: "hand" },
+        { word: "bone", th: "กระดูก", scene: "bone", x: 150, y: 150, r: 104, noArrow: true },
+        { word: "wrist", th: "ข้อมือ", scene: "hand", x: 150, y: 258, r: 20, group: "hand" },
+        { word: "calf", th: "น่อง", scene: "back", x: 168, y: 256, r: 15, group: "leg" },
+        { word: "back", th: "หลัง", scene: "back", x: 150, y: 140, r: 28 },
+        { word: "hip", th: "สะโพก", scene: "front", x: 186, y: 196, r: 12 },
+        { word: "ankle", th: "ข้อเท้า", scene: "foot", x: 100, y: 170, r: 14, group: "foot" },
+        { word: "foot sole", th: "ฝ่าเท้า", scene: "foot", x: 160, y: 238, rx: 74, ry: 11, group: "foot" },
+        { word: "heel", th: "ส้นเท้า", scene: "back", x: 128, y: 287, r: 12, group: "foot" },
+        { word: "bottom", th: "ก้น", scene: "back", x: 150, y: 206, r: 19 },
+      ],
+    },
+
+    verbs: {
+      title: "คำกริยาภาษาอังกฤษ",
+      emoji: "🏃",
+      subtitle: "Verbs — คำกริยาที่ใช้บ่อย 27 คำ",
+      picQuestion: "ภาพนี้คือคำกริยาอะไร?",
+      wordQuestion: "คำนี้คือภาพไหน?",
+      pic: verbPic,
+      words: [
+        // การกระทำทั่วไป
+        { word: "go", th: "ไป", pic: "🚶➡️🏫", group: "move", example: "I go to school.", exampleTh: "ฉันไปโรงเรียน" },
+        { word: "come", th: "มา", pic: "🏠⬅️🚶", group: "move", example: "Come here, please.", exampleTh: "มาที่นี่หน่อย" },
+        { word: "run", th: "วิ่ง", pic: "🏃💨", group: "move", example: "I run fast.", exampleTh: "ฉันวิ่งเร็ว" },
+        { word: "walk", th: "เดิน", pic: "🚶🌳", group: "move", example: "We walk in the park.", exampleTh: "พวกเราเดินในสวน" },
+        { word: "jump", th: "กระโดด", pic: "🐸⤴️", example: "The frog can jump.", exampleTh: "กบกระโดดได้" },
+        { word: "eat", th: "กิน", pic: "😋🍚", group: "food", example: "I eat rice.", exampleTh: "ฉันกินข้าว" },
+        { word: "drink", th: "ดื่ม", pic: "🥛😊", group: "food", example: "I drink milk.", exampleTh: "ฉันดื่มนม" },
+        { word: "sleep", th: "นอนหลับ", pic: "😴🛏️", example: "I sleep at night.", exampleTh: "ฉันนอนหลับตอนกลางคืน" },
+        // ความคิดและความรู้สึก
+        { word: "know", th: "รู้ / รู้จัก", pic: "💡✔️", group: "mind", example: "I know the answer.", exampleTh: "ฉันรู้คำตอบ" },
+        { word: "think", th: "คิด", pic: "🤔💭", group: "mind", example: "Let me think.", exampleTh: "ขอฉันคิดก่อนนะ" },
+        { word: "remember", th: "จำได้", pic: "🧠📝", group: "mind", example: "I remember your name.", exampleTh: "ฉันจำชื่อเธอได้" },
+        { word: "love", th: "รัก", pic: "🥰❤️", group: "feel", example: "I love my mom.", exampleTh: "ฉันรักแม่" },
+        { word: "want", th: "ต้องการ", pic: "🤤🍦", group: "feel", example: "I want ice cream.", exampleTh: "ฉันอยากได้ไอศกรีม" },
+        { word: "like", th: "ชอบ", pic: "👍😊", group: "feel", example: "I like cats.", exampleTh: "ฉันชอบแมว" },
+        { word: "hate", th: "เกลียด", pic: "😠👎", group: "feel", example: "I hate mosquitoes.", exampleTh: "ฉันเกลียดยุง" },
+        // ชีวิตประจำวันและการทำงาน
+        { word: "work", th: "ทำงาน", pic: "💼💻", group: "job", example: "My dad works at the office.", exampleTh: "พ่อของฉันทำงานที่ออฟฟิศ" },
+        { word: "cook", th: "ทำอาหาร", pic: "🍳🔥", example: "Mom cooks dinner.", exampleTh: "แม่ทำอาหารเย็น" },
+        { word: "clean", th: "ทำความสะอาด", pic: "🧹✨", group: "clean", example: "I clean my room.", exampleTh: "ฉันทำความสะอาดห้อง" },
+        { word: "wash", th: "ล้าง", pic: "🧼🙌", group: "clean", example: "Wash your hands.", exampleTh: "ล้างมือของเธอนะ" },
+        { word: "buy", th: "ซื้อ", pic: "🛒🛍️", group: "shop", example: "I buy apples.", exampleTh: "ฉันซื้อแอปเปิล" },
+        { word: "sell", th: "ขาย", pic: "🏪💰", group: "shop", example: "They sell fruit.", exampleTh: "พวกเขาขายผลไม้" },
+        { word: "study", th: "เรียน", pic: "📚✏️", group: "job", example: "I study English.", exampleTh: "ฉันเรียนภาษาอังกฤษ" },
+        // กริยาช่วยและกริยาพื้นฐาน
+        { word: "be", display: "Be (is, am, are)", th: "เป็น, อยู่, คือ", pic: "👦 = 😊", group: "aux", speakAs: "be", example: "I am happy.", exampleTh: "ฉันมีความสุข" },
+        { word: "have", display: "Have (has, had)", th: "มี", pic: "🧒🐶", group: "aux", speakAs: "have", example: "I have a dog.", exampleTh: "ฉันมีสุนัข" },
+        { word: "do", display: "Do (does, did)", th: "ทำ", pic: "📝✅", group: "aux", speakAs: "do", example: "I do my homework.", exampleTh: "ฉันทำการบ้าน" },
+        { word: "can", display: "Can / Could", th: "สามารถ", pic: "🏊💪", group: "aux", speakAs: "can", example: "I can swim.", exampleTh: "ฉันว่ายน้ำได้" },
+        { word: "will", display: "Will / Would", th: "จะ", pic: "📅➡️✈️", group: "aux", speakAs: "will", example: "I will visit Grandma.", exampleTh: "ฉันจะไปเยี่ยมคุณยาย" },
+      ],
+    },
+
+    home: {
+      title: "ของใช้ในบ้านภาษาอังกฤษ",
+      emoji: "🏠",
+      subtitle: "Things at Home — ของใช้ภายในบ้าน 54 คำ",
+      picQuestion: "สิ่งนี้ภาษาอังกฤษคืออะไร?",
+      wordQuestion: "คำนี้คือรูปไหน?",
+      pic: verbPic,
+      words: [
+        // เฟอร์นิเจอร์
+        { word: "sofa", th: "โซฟา", pic: "🛋️", group: "seat" },
+        { word: "armchair", th: "เก้าอี้มีที่วางแขน", pic: "💺", group: "seat" },
+        { word: "table", th: "โต๊ะ", pic: "🍽️", group: "table" },
+        { word: "chair", th: "เก้าอี้", pic: "💺", group: "seat" },
+        { word: "cabinet", th: "ตู้", pic: "🗄️", group: "cupboard" },
+        { word: "wardrobe", th: "ตู้เสื้อผ้า", pic: "👗🚪", group: "cupboard" },
+        { word: "chest of drawers", th: "ตู้มีลิ้นชัก", pic: "🗄️", group: "cupboard" },
+        { word: "bed", th: "เตียงนอน", pic: "🛏️", group: "bed" },
+        { word: "bedside table", th: "โต๊ะข้างเตียง", pic: "🛏️💡", group: "table" },
+        { word: "desk", th: "โต๊ะทำงาน / โต๊ะเขียนหนังสือ", pic: "🖥️", group: "table" },
+        { word: "bookcase", th: "ตู้หนังสือ", pic: "📚", group: "cupboard" },
+        // ห้องนอนและเครื่องนอน
+        { word: "mattress", th: "ฟูก / ที่นอน", pic: "🛏️", group: "bed" },
+        { word: "bed sheet", th: "ผ้าปูที่นอน", pic: "🛏️", group: "bed" },
+        { word: "duvet", display: "Duvet / Blanket", th: "ผ้าห่ม", pic: "🛌", group: "bed", speakAs: "Duvet. Blanket." },
+        { word: "pillow", th: "หมอน", pic: "💤", group: "bed" },
+        { word: "cushion", th: "หมอนอิง", pic: "🛋️", group: "bed" },
+        { word: "curtain", th: "ผ้าม่าน", pic: "🏠" },
+        { word: "lamp", th: "โคมไฟ", pic: "💡" },
+        { word: "alarm clock", th: "นาฬิกาปลุก", pic: "⏰" },
+        // ห้องน้ำ
+        { word: "bath", display: "Bath / Bathtub", th: "อ่างอาบน้ำ", pic: "🛁", group: "wash", speakAs: "Bath. Bathtub." },
+        { word: "shower", th: "ฝักบัวอาบน้ำ", pic: "🚿", group: "wash" },
+        { word: "washbasin", th: "อ่างล้างหน้า", pic: "🚰", group: "wash" },
+        { word: "toilet", th: "ชักโครก / โถส้วม", pic: "🚽" },
+        { word: "toothbrush", th: "แปรงสีฟัน", pic: "🦷", group: "teeth" },
+        { word: "toothpaste", th: "ยาสีฟัน", pic: "🦷", group: "teeth" },
+        { word: "soap", th: "สบู่", pic: "🧼" },
+        { word: "towel", th: "ผ้าเช็ดตัว", pic: "🏠" },
+        { word: "mirror", th: "กระจกเงา", pic: "🏠" },
+        { word: "comb", th: "หวี", pic: "💇" },
+        // ห้องครัว
+        { word: "refrigerator", th: "ตู้เย็น", pic: "❄️🥛" },
+        { word: "gas stove", th: "เตาแก๊ส", pic: "🔥", group: "stove" },
+        { word: "rice cooker", th: "หม้อหุงข้าว", pic: "🍚", group: "stove" },
+        { word: "microwave", th: "ไมโครเวฟ", pic: "🏠", group: "stove" },
+        { word: "frying pan", th: "กระทะทอด", pic: "🍳", group: "pot" },
+        { word: "pot", th: "หม้อ", pic: "🍲", group: "pot" },
+        { word: "saucepan", th: "หม้อด้าม", pic: "🍲", group: "pot" },
+        { word: "plate", th: "จาน", pic: "🍽️", group: "dish" },
+        { word: "bowl", th: "ชาม", pic: "🥣", group: "dish" },
+        { word: "cup", display: "Cup / Glass", th: "ถ้วย / แก้วน้ำ", pic: "☕", group: "dish", speakAs: "Cup. Glass." },
+        { word: "fork", th: "ส้อม", pic: "🍴", group: "cutlery" },
+        { word: "spoon", th: "ช้อน", pic: "🥄", group: "cutlery" },
+        { word: "knife", th: "มีด", pic: "🔪", group: "cutlery" },
+        { word: "ladle", th: "ทัพพี / กระบวย", pic: "🥄", group: "cutlery" },
+        // เครื่องใช้ไฟฟ้าและอุปกรณ์ทำความสะอาด
+        { word: "television", display: "Television (TV)", th: "โทรทัศน์", pic: "📺", speakAs: "Television. TV." },
+        { word: "air-conditioner", th: "เครื่องปรับอากาศ", pic: "❄️" },
+        { word: "washing machine", th: "เครื่องซักผ้า", pic: "👕💧" },
+        { word: "vacuum cleaner", th: "เครื่องดูดฝุ่น", pic: "🏠", group: "sweep" },
+        { word: "iron", th: "เตารีด", pic: "👔", group: "iron" },
+        { word: "ironing board", th: "โต๊ะรองรีด", pic: "👔", group: "iron" },
+        { word: "broom", th: "ไม้กวาด", pic: "🧹", group: "sweep" },
+        { word: "mop", th: "ไม้ถูพื้น", pic: "🧹", group: "sweep" },
+        { word: "dustpan", th: "ที่โกยผง", pic: "🧹", group: "sweep" },
+        { word: "bucket", th: "ถังน้ำ", pic: "💧", group: "bin" },
+        { word: "bin", display: "Bin / Trash can", th: "ถังขยะ", pic: "🗑️", group: "bin", speakAs: "Bin. Trash can." },
+      ],
+    },
+  };
+
+  // ======================================================================
+  //  รูปถ่ายจริงจาก Wikimedia Commons: [path ไฟล์ "a/ab/ชื่อไฟล์" หรือ URL เต็ม, กว้าง, สูง]
+  //  ถ้าโหลดไม่ได้ (ไม่มีอินเทอร์เน็ต) จะใช้รูปวาด/emoji ด้านบนแทน
+  // ======================================================================
+  const PHOTOS = {
+    colors: {
+      "red": ["2/21/Bright_red_painted_slightly_dirty_rough_seamless_metal_sheet_texture.jpg", 2320, 2308],
+      "yellow": ["e/e4/Lemon.jpg", 1200, 848],
+      "blue": ["d/d7/Blue_Paint_%2835121827170%29_%282%29.jpg", 3543, 2230],
+      "green": ["a/ac/Green_healthy_vegetation_leaves_foliage_dense_bush_shrub_seamless_texture.jpg", 1831, 1831],
+      "orange": ["e/e3/Oranges_-_whole-halved-segment.jpg", 6000, 4000],
+      "purple": ["7/76/Solanum_melongena_24_08_2012_%281%29.JPG", 2397, 2617],
+      "pink": ["0/00/Bouquet_de_roses_roses.jpg", 3264, 2448],
+      "brown": ["7/7e/Painted_Wood_Grain_Texture_DTXR-WD-GR-3.jpg", 3872, 2592],
+      "black": ["9/94/DSC09611a_Search_and_Rescue_Dog%2C_Austrian_Red_Cross_Perchtoldsdorf%2C_2024-10.jpg", 3195, 4260],
+      "white": ["b/b3/Fresh_snow_-_geograph.org.uk_-_1670761.jpg", 800, 551],
+      "grey": ["f/fb/Light_grey_painted_bumpy_moderately_discolored_grubby_grungy_seamless_concrete_texture.jpg", 2656, 2656],
+      "gold": ["6/60/Gold_Ingots_on_white_background.jpg", 3445, 2082],
+      "silver": ["7/7d/Silver_teapot_and_spoons_%2828015407534%29.jpg", 5472, 3648],
+    },
+    verbs: {
+      "go": ["f/f8/Happy_kids_walking_barefoot_to_school_Nigeria.jpg", 3264, 1840],
+      "come": ["6/63/Dog_running_to_see_the_owner.jpg", 2946, 1970],
+      "run": ["d/d9/2014-11-15_Relay_race_on_the_Sports_day_of_Haikou_Elementary_School_%28Zhunan%29.jpg", 7228, 4824],
+      "walk": ["2/2f/Path%2C_Tollymore_Forest_Park_-_geograph.org.uk_-_3457889.jpg", 640, 480],
+      "jump": ["b/bf/Jumping_in_the_air%2C_Flash_jump_shot%2C_Awesome_jumpshot%2C.JPG", 2816, 2112],
+      "eat": ["9/94/Agrosalud8_%283972123507%29.jpg", 996, 1500],
+      "drink": ["6/66/Woman_drinking_from_bottle_%28Unsplash%29.jpg", 2304, 1536],
+      "sleep": ["9/91/Man_sleeping_with_framed_picture.jpg", 1810, 1521],
+      "know": ["5/55/Uchit_0.jpg", 2716, 1810],
+      "think": ["a/a4/Le_Penseur_by_Rodin_%28Kunsthalle_Bielefeld%29_2014-04-10.JPG", 3000, 4000],
+      "remember": ["6/6d/Memory_%28game%29.JPG", 2244, 1553],
+      "love": ["7/71/Mother_Kissing_Baby.jpg", 1280, 853],
+      "want": ["2/27/Hammond_Slides_Moscow_1964_04.jpg", 4199, 2549],
+      "like": ["4/49/Thumb_up.JPG", 2633, 2634],
+      "hate": ["1/19/Man_with_beard_and_knit_red_cap_frowns_and_has_disgusted_facial_expression.jpg", 4256, 2832],
+      "work": ["5/5f/Man_at_a_laptop_in_an_office_%28Unsplash%29.jpg", 3500, 2338],
+      "cook": ["7/77/Man_cooking_at_home_in_Laos.jpg", 1600, 1200],
+      "clean": ["d/d2/Polypropylene_Clean_Room_-_Non-Shedding_Wipe.jpg", 2706, 2706],
+      "wash": ["9/9d/Washing_hands_with_soap_%283%29.jpg", 2112, 1711],
+      "buy": ["f/f7/Shopping_Cart_Supermarket.jpg", 3984, 2656],
+      "sell": ["2/27/Baliuage%C3%B1o_mango_fruit_vendor_04.jpg", 5184, 3888],
+      "study": ["a/a2/Students_Studying_Together_During_an_Araling_Panlipunan_Class.jpg", 720, 548],
+      "be": ["f/fa/Portrait_in_sunshine_at_golden_hour_of_a_smiling_boy_wearing_a_yellow_sweater_with_hood_pulled_up_in_Laos.jpg", 2250, 3374],
+      "have": ["4/42/Cute_girl_and_the_puppy.jpg", 1600, 1151],
+      "do": ["3/34/Child_engaged_in_homework_with_glass_of_water_on_table.jpg", 6048, 4024],
+      "can": ["9/9f/Child_swims_in_a_swimming_pool_on_a_sunny_day_with_water_splashing_around.jpg", 6048, 4032],
+      "will": ["e/ee/Nigerian_Igbo_grandma_at_home_with_grandson.jpg", 1916, 2948],
+    },
+    home: {
+      "sofa": ["8/8c/Cozy_living_room_setup_with_a_warm_sofa%2C_coffee_cup%2C_and_an_open_book_in_a_softly_lit_environment.jpg", 4016, 6016],
+      "armchair": ["https://upload.wikimedia.org/wikipedia/commons/7/73/Fauteuil_rond2.jpg", 287, 203],
+      "table": ["2/2b/Dining_table_brown.jpg", 3072, 4096],
+      "chair": ["c/c6/Set_of_fourteen_side_chairs_MET_DP110780.jpg", 3867, 4000],
+      "cabinet": ["e/e6/Serwantka.JPG", 1536, 2048],
+      "wardrobe": ["5/5f/Wardrobe_MET_DP235302.jpg", 2545, 3839],
+      "chest of drawers": ["6/6d/Luikse_Commode%2C_KBS-FRB_01.jpg", 1407, 1500],
+      "bed": ["4/42/Canopy_bed_of_Amantaka_Suite_in_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg", 5795, 4346],
+      "bedside table": ["3/3c/Bedside_Table_and_Lamp_by_Alekos_Fassianos.jpg", 3096, 4128],
+      "desk": ["1/12/Bureau_table_MET_DP108643.jpg", 4000, 4000],
+      "bookcase": ["e/ec/Bookshelf_Prunksaal_OeNB_Vienna_AT_matl00786ch.jpg", 3015, 2010],
+      "mattress": ["b/bb/Shifman_Mattress_Set.JPG", 4828, 3019],
+      "bed sheet": ["e/ed/Prze%C5%9Bcierad%C5%82o.jpg", 2249, 1217],
+      "duvet": ["b/b2/La_cama_deshecha_%282724466831%29.jpg", 3072, 2304],
+      "pillow": ["2/25/An_average_white_pillow.jpg", 3024, 4032],
+      "cushion": ["d/dd/Throw_Pillows_%28Scatter_Cushions%29.jpg", 1920, 1280],
+      "curtain": ["6/6a/Gordijnen_aan_venster.JPG", 2560, 1920],
+      "lamp": ["2/2f/Lamp_with_a_lampshade_illuminated_by_sunlight.jpg", 3877, 5323],
+      "alarm clock": ["8/8b/2010-07-20_Black_windup_alarm_clock_face.jpg", 1849, 2350],
+      "bath": ["2/23/Clawfoot_bathtub.jpg", 2222, 1614],
+      "shower": ["7/7e/Showerhead.JPG", 2304, 1728],
+      "washbasin": ["4/4a/Luxury_sink.jpg", 2610, 1764],
+      "toilet": ["0/02/Flush_toilet.jpg", 3000, 4000],
+      "toothbrush": ["c/c3/Toothbrush_20050716_004.jpg", 2272, 1704],
+      "toothpaste": ["8/8c/Vitis_Dentaid_toothpaste_tube%2C_Hillegersberg%2C_Rotterdam_%282021%29_01.jpg", 5344, 3008],
+      "soap": ["9/9b/Handmade_soap_cropped_and_simplified.jpg", 1131, 972],
+      "towel": ["5/57/Zusammengelegte_Handt%C3%BCcher.jpg", 2271, 1944],
+      "mirror": ["3/3c/Reflection_in_mirror_City_Hall2015-10-17_14.07.25.jpg", 480, 640],
+      "comb": ["4/4a/Plastic_comb%2C_2015-06-07.jpg", 3713, 2476],
+      "refrigerator": ["8/85/LG_refrigerator_interior.jpg", 2448, 3264],
+      "gas stove": ["c/c1/3_burner_gas_stove.jpg", 1024, 576],
+      "rice cooker": ["d/d6/Rice_Cooker_1.png", 850, 550],
+      "microwave": ["0/08/Panasonic_NN-SD69LS_20220410.jpg", 3024, 3024],
+      "frying pan": ["5/5c/Pfanne_%28Edelstahl%29.jpg", 520, 409],
+      "pot": ["7/75/Pot_%28IMG_0263%29.jpg", 5472, 3648],
+      "saucepan": ["6/65/Hahn_16cm_Saucepan.jpg", 1024, 547],
+      "plate": ["7/76/Botanical_plate_with_spray_of_fruiting_Indian_Bean_Tree_MET_DP-1687-038_%28cropped%29.jpg", 2425, 2332],
+      "bowl": ["https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/China%2C_Jiangxi_province%2C_Jingdezhen%2C_Ming_dynasty_%281368-1644%29%2C_Xuande_mark_-_Bowl_with_Decoration_of_the_%22Three_Friends%22_-_1953.631_-_Cleveland_Museum_of_Art.tif/lossy-page1-330px-thumbnail.tif.jpg", 6478, 4266],
+      "cup": ["d/da/Cup_and_Saucer_LACMA_47.35.6a-b_%281_of_3%29.jpg", 2100, 1841],
+      "fork": ["0/04/Table_Fork_-_ABDAG001397.jpg", 500, 749],
+      "spoon": ["9/92/Soup_Spoon.jpg", 1848, 1419],
+      "knife": ["e/eb/2020_No%C5%BCe_kuchenne_Gerlach.jpg", 5257, 2281],
+      "ladle": ["2/28/Greek_-_Ladle_-_Walters_57909.jpg", 1052, 1800],
+      "television": ["9/91/1990s_Television_Set.jpg", 409, 592],
+      "air-conditioner": ["e/eb/Panasonic_AIR_CONDITIONER_INDOOR_UNIT_CS-C10KJ2_%282%29.jpg", 6553, 3632],
+      "washing machine": ["e/ec/LG_%EB%93%9C%EB%9F%BC%EC%84%B8%ED%83%81%EA%B8%B0%EC%99%80_%EC%8B%9D%EA%B8%B0%EC%84%B8%EC%B2%99%EA%B8%B0%2C_%EC%98%81%EA%B5%AD%EC%84%9C_%EB%AC%BC%EC%82%AC%EC%9A%A9_%ED%9A%A8%EC%9C%A8_%EC%B5%9C%EC%9A%B0%EC%88%98_%EC%A0%9C%ED%92%88_%EC%88%98%EC%83%81.jpg", 770, 1132],
+      "vacuum cleaner": ["7/7a/Numatic_Henry_vacuum_cleaner_%283308986870%29_%28cropped%29.jpg", 2458, 1843],
+      "iron": ["9/9f/Electric_steam_iron.jpg", 4301, 2856],
+      "ironing board": ["0/03/Buegelbrett_%28fcm%29.jpg", 2522, 1883],
+      "broom": ["3/33/Broom%2C_doll%27s_%28AM_2013.51.8.1-1%29.jpg", 5184, 3456],
+      "mop": ["d/d0/Blue_mop_and_mop_bucket_in_the_back_of_McDonald%27s.jpg", 1467, 3230],
+      "dustpan": ["d/d6/Shovelilo.jpg", 1956, 1340],
+      "bucket": ["c/c9/One_red_bucket.jpg", 3000, 4000],
+      "bin": ["3/35/Garbage-bin-001.jpg", 3024, 4032],
+    },
+    bodyScenes: {
+      front: ["d/d6/BM_und_BJM_Schwimmen_2018-06-23_Siegerehrungen_22.jpg", 3863, 5932],
+      backfull: ["5/5e/Ford_Park%2C_Old_Man_Walks%2C_Redlands%2C_CA_7-12_%287795782420%29.jpg", 1549, 1752],
+      back: ["d/de/Alone_boy_.jpg", 640, 640],
+      face: ["b/ba/Child-0699.jpg", 2816, 1872],
+      eye: ["9/97/Close_up_shot_of_the_human_eye%2C_9_August_2024.jpg", 1463, 1269],
+      ear: ["e/ed/Human_right_ear_%28cropped%29.jpg", 1773, 2637],
+      neck: ["3/33/Structure_of_Adam%27s_apple.png", 531, 500],
+      teeth: ["d/db/06-10-06smile.jpg", 1430, 822],
+      tongue: ["4/4f/Rolled_tongue_flikr.jpg", 1280, 851],
+      hand: ["2/24/Open_Palm_of_the_Left_Hand%2C_Fingers.jpg", 4032, 3024],
+      foot: ["5/56/Foot_on_white_background.jpg", 5760, 3840],
+      sole: ["b/bf/Sole_of_foot_of_a_two_week_old_Asian_infant_on_a_white_bed_sheet%2C_focus_stacking.jpg", 6466, 4041],
+      armpit: ["1/1e/Anchor_Girl_%28Unsplash%29.jpg", 5184, 3456],
+      armpithair: ["e/e1/Adolescent_male_axillary_hair%2C_16_years_old.jpg", 1645, 1665],
+      navel: ["c/cf/Human_navel%2C_female.jpg", 844, 957],
+      bone: ["9/9a/Femur_-_anterior%2C_posterior.jpg", 4240, 3272],
+      knee: ["0/07/Human_knees.jpg", 3840, 5760],
+      elbow: ["5/5c/Elbow_coude.JPG", 2256, 1496],
+      calf: ["8/8f/L%C3%BDtka.jpg", 454, 663],
+      hand2: ["a/a3/Hand%2C_fingers_-_back.jpg", 3840, 5760],
+    },
+  };
+
+  // หมวดร่างกาย: [ภาพพื้นฐาน, x%, y%, รัศมี% ของความกว้าง] หรือ { rx: % กว้าง, ry: % สูง } · noArrow = ไม่มีลูกศร
+  const BODY_PHOTOS = {
+    "body": ["front", 53, 50, { rx: 21, ry: 43, noArrow: true }],
+    "head": ["front", 50, 16, 8],
+    "eye": ["face", 34, 30, 5],
+    "ear": ["ear", 52, 48, { rx: 30, ry: 40, noArrow: true }],
+    "shoulder": ["front", 66, 22, 5],
+    "elbow": ["elbow", 61, 76, 10],
+    "hand": ["front", 64, 41, 5],
+    "thigh": ["knee", 30, 32, 11],
+    "leg": ["front", 50, 74, { rx: 11, ry: 14 }],
+    "toenail": ["foot", 91, 64, 3.5],
+    "toe": ["foot", 84, 70, 7],
+    "palm": ["hand", 40, 62, 14],
+    "arm": ["front", 69, 32, 5],
+    "mouth": ["face", 49, 69, 7],
+    "chest": ["front", 57, 28, 6],
+    "abdomen": ["navel", 50, 50, { rx: 42, ry: 42, noArrow: true }],
+    "navel": ["navel", 50, 42, 8],
+    "knee": ["knee", 57, 42, 9],
+    "foot": ["foot", 58, 55, { rx: 42, ry: 32, noArrow: true }],
+    "eyelid": ["eye", 55, 23, 7],
+    "armpit": ["armpit", 73, 33, 5],
+    "armpit hair": ["armpithair", 50, 48, 20],
+    "forehead": ["face", 49, 13, 7],
+    "eyelash": ["eye", 27, 34, 6],
+    "nose": ["face", 48, 46, 5],
+    "hair": ["face", 40, 6, 8],
+    "eyebrow": ["face", 36, 23, 5],
+    "cheek": ["face", 66, 53, 6],
+    "neck": ["front", 50, 23, 3.5],
+    "chin": ["face", 49, 85, 5],
+    "adam's apple": ["front", 50, 24, 2.5],
+    "gum": ["teeth", 28, 14, 6],
+    "tooth": ["teeth", 47, 40, 7],
+    "lip": ["face", 49, 72, 4],
+    "teeth": ["teeth", 50, 47, { rx: 42, ry: 40, noArrow: true }],
+    "earlobe": ["ear", 67, 82, 9],
+    "index finger": ["hand2", 63, 28, 5],
+    "tongue": ["tongue", 51, 77, 6],
+    "thumb": ["hand2", 75, 52, 6],
+    "little finger": ["hand2", 22, 30, 5],
+    "finger": ["hand2", 52, 24, 5],
+    "ring finger": ["hand2", 34, 36, 5],
+    "bone": ["bone", 50, 50, { rx: 46, ry: 42, noArrow: true }],
+    "wrist": ["hand2", 36, 80, 9],
+    "calf": ["calf", 30, 28, 12],
+    "back": ["back", 58, 70, 15],
+    "hip": ["front", 65, 52, 5],
+    "ankle": ["foot", 24, 48, 7],
+    "foot sole": ["sole", 52, 55, { rx: 32, ry: 30, noArrow: true }],
+    "heel": ["calf", 22, 82, 8],
+    "bottom": ["backfull", 67, 52, 5],
+  };
+  // เติมค่าเริ่มต้น: display = ตัวแรกพิมพ์ใหญ่
+  Object.values(CATEGORIES).forEach((cat) =>
+    cat.words.forEach((w) => {
+      if (!w.display) w.display = w.word.charAt(0).toUpperCase() + w.word.slice(1);
+      if (!w.speakAs) w.speakAs = w.display;
+    })
+  );
+
+  // ======================================================================
+  //  ตั้งค่าเกม
+  // ======================================================================
+  const SETTINGS = [
+    {
+      key: "cat", label: "1. หมวดคำศัพท์", grid: "two",
+      options: Object.entries(CATEGORIES).map(([value, c]) => ({ value, label: `${c.emoji} ${c.title.replace("ภาษาอังกฤษ", "")}`, sub: `${c.words.length} คำ` })),
+    },
+    {
+      key: "qtype", label: "2. รูปแบบคำถาม", grid: true,
+      options: [
+        { value: "pic", label: "🖼️ ดูรูป", sub: "เลือกคำศัพท์" },
+        { value: "word", label: "🔤 ดูคำศัพท์", sub: "เลือกรูป" },
+        { value: "spell", label: "🧩 สะกดคำ", sub: "เรียงตัวอักษร" },
+      ],
+    },
+    {
+      key: "count", label: "3. จำนวนข้อ",
+      options: [5, 10, 15, 20].map((n) => ({ value: n, label: `${n} ข้อ` })).concat({ value: 0, label: "ทั้งหมด" }),
+    },
+  ];
+
+  const SETTINGS_KEY = "english-words-settings";
+  const PRAISES = ["เก่งมาก! 🎉", "ยอดเยี่ยม! 🌟", "ถูกต้อง! 👏", "Great job! 🚀", "Excellent! 💯"];
+  const TRY_AGAIN = ["ลองใหม่นะ 💪", "เกือบแล้ว! ลองอีกที 🤔", "ไม่เป็นไร ลองใหม่ 😊"];
+
+  const state = {
+    settings: { cat: "colors", qtype: "pic", count: 10 },
+    soundOn: true,
+    questions: [],
+    index: 0,
+    score: 0,
+    missed: [],
+    firstTry: true,
+    locked: false,
+    round: 0,
+    spellPos: 0,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const screens = { start: $("start-screen"), game: $("game-screen"), result: $("result-screen") };
+  const category = () => CATEGORIES[state.settings.cat];
+
+  function showScreen(name) {
+    Object.values(screens).forEach((s) => s.classList.add("hidden"));
+    screens[name].classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // ---------- รูปถ่ายจริง ----------
+  const THUMB_BASE = "https://upload.wikimedia.org/wikipedia/commons/thumb";
+  const fileOf = (path) => path.split("/").pop().split("?")[0];
+
+  // รูปของคำนี้: { src, w, h, overlay? } หรือ null ถ้าไม่มี
+  function photoOf(item) {
+    const cat = state.settings.cat;
+    let entry, mark;
+    if (cat === "body") {
+      const spec = BODY_PHOTOS[item.word];
+      if (!spec) return null;
+      entry = PHOTOS.bodyScenes[spec[0]];
+      mark = spec;
+    } else {
+      entry = (PHOTOS[cat] || {})[item.word];
+    }
+    if (!entry) return null;
+    const [path, w, h] = entry;
+    const src = path.startsWith("http") ? path : `${THUMB_BASE}/${path}/500px-${fileOf(path)}`;
+    const page = path.startsWith("http") ? path : `https://commons.wikimedia.org/wiki/File:${fileOf(path)}`;
+    return { src, page, w, h, mark };
+  }
+
+  // วงไฮไลต์ + ลูกศรบนรูปถ่าย (พิกัดเป็น % ของภาพ, viewBox กว้าง 100)
+  function photoMark(mark, w, h) {
+    const H = (100 * h) / w;
+    const [, px, py, size] = mark;
+    const opts = typeof size === "object" ? size : { r: size };
+    const x = px, y = (py / 100) * H;
+    const rx = opts.rx || opts.r;
+    const ry = opts.ry ? (opts.ry / 100) * H : opts.r;
+    const sw = 1.6;
+    let svg = `<svg viewBox="0 0 100 ${H.toFixed(2)}" aria-hidden="true">
+      <defs><marker id="ph-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#FF3B5C"/></marker></defs>
+      <ellipse class="hl" cx="${x}" cy="${y.toFixed(2)}" rx="${rx}" ry="${ry.toFixed(2)}" fill="rgba(255,59,92,.15)" stroke="#fff" stroke-width="${sw + 1.4}"/>
+      <ellipse class="hl" cx="${x}" cy="${y.toFixed(2)}" rx="${rx}" ry="${ry.toFixed(2)}" fill="none" stroke="#FF3B5C" stroke-width="${sw}"/>`;
+    if (!opts.noArrow) {
+      const dirX = x < 50 ? 1 : -1; // ลูกศรมาจากฝั่งที่มีที่ว่างมากกว่า
+      let sx = x + dirX * 24;
+      let sy = y < H * 0.3 ? y + 20 : y - 20;
+      sx = Math.min(97, Math.max(3, sx));
+      sy = Math.min(H - 3, Math.max(3, sy));
+      const dx = sx - x, dy = sy - y, len = Math.hypot(dx, dy) || 1;
+      const edge = Math.max(rx, ry) + 2;
+      const ex = x + (dx / len) * edge, ey = y + (dy / len) * edge;
+      const line = `x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"`;
+      svg += `<line ${line} stroke="#fff" stroke-width="${sw + 1.8}" stroke-linecap="round"/>
+              <line ${line} stroke="#FF3B5C" stroke-width="${sw + 0.4}" stroke-linecap="round" marker-end="url(#ph-arrow)"/>`;
+    }
+    return svg + "</svg>";
+  }
+
+  function picture(item, className) {
+    const box = el("div", className);
+    const fallback = () => { box.innerHTML = category().pic(item); };
+    const photo = photoOf(item);
+    if (!photo) { fallback(); return box; }
+
+    // รูปใช้ object-fit: contain และ SVG ใช้ viewBox สัดส่วนเดียวกับรูป จึงย่อขยายตรงกันทุกขนาดกรอบ
+    const wrap = el("div", "photo-wrap");
+    const img = el("img");
+    img.alt = "รูปภาพ"; // ไม่ใส่คำตอบ จะได้ไม่เฉลย
+    img.draggable = false;
+    let retried = false;
+    img.addEventListener("error", () => {
+      if (retried) return fallback();
+      retried = true; // ลองโหลดใหม่อีกครั้งก่อน (เผื่อเน็ตสะดุด)
+      setTimeout(() => { img.src = `${photo.src}${photo.src.includes("?") ? "&" : "?"}retry=1`; }, 1000);
+    });
+    img.src = photo.src;
+    wrap.append(img);
+    if (photo.mark) wrap.insertAdjacentHTML("beforeend", photoMark(photo.mark, photo.w, photo.h));
+    box.append(wrap);
+    return box;
+  }
+
+  function creditLink(item) {
+    const photo = photoOf(item);
+    if (!photo) return null;
+    const link = el("a", "credit", "📷 ที่มาภาพ");
+    link.href = photo.page;
+    link.target = "_blank";
+    link.rel = "noopener";
+    return link;
+  }
+
+  // โหลดรูปของ 3 ข้อถัดไปไว้ล่วงหน้า
+  function preloadUpcoming() {
+    state.questions.slice(state.index + 1, state.index + 4).forEach((item) => {
+      const photo = photoOf(item);
+      if (photo) new Image().src = photo.src;
+    });
+  }
+
+  // ---------- เสียง ----------
+  let audioCtx = null;
+  function playTone(freq, duration, delay = 0, type = "sine") {
+    if (!state.soundOn) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + duration + 0.05);
+    } catch (e) {}
+  }
+  const sounds = {
+    correct() { playTone(660, 0.15); playTone(880, 0.25, 0.12); },
+    wrong() { playTone(220, 0.3, 0, "triangle"); },
+    letter() { playTone(990, 0.08); },
+    finish() { [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.3, i * 0.15)); },
+  };
+
+  // อ่านออกเสียงภาษาอังกฤษด้วยเสียงของเบราว์เซอร์
+  function speak(text) {
+    if (!state.soundOn || !("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      utter.rate = 0.85;
+      const voice = speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
+      if (voice) utter.voice = voice;
+      speechSynthesis.speak(utter);
+    } catch (e) {}
+  }
+
+  function speakButton(text, label = "🔊 ฟังเสียง") {
+    const btn = el("button", "btn speak-btn", label);
+    btn.addEventListener("click", () => speak(text));
+    return btn;
+  }
+
+  // ---------- หน้าตั้งค่า ----------
+  function renderSettings() {
+    const c = category();
+    $("start-mascot").textContent = c.emoji;
+    $("start-title").textContent = `เกม${c.title}`;
+    $("start-subtitle").textContent = c.subtitle;
+    document.title = `เกม${c.title}`;
+
+    const box = $("settings");
+    box.innerHTML = "";
+    SETTINGS.forEach((setting) => {
+      const section = el("div", "setting");
+      section.append(el("p", "setting-label", setting.label));
+      const options = el("div", "options" + (setting.grid ? " grid" : "") + (setting.grid === "two" ? " two" : ""));
+      setting.options.forEach((opt) => {
+        const btn = el("button", "btn option" + (state.settings[setting.key] === opt.value ? " selected" : ""));
+        btn.append(el("span", "", opt.label));
+        if (opt.sub) btn.append(el("small", "", opt.sub));
+        btn.addEventListener("click", () => {
+          state.settings[setting.key] = opt.value;
+          saveSettings();
+          renderSettings();
+        });
+        options.append(btn);
+      });
+      section.append(options);
+      if (setting.key === "count") {
+        const total = c.words.length;
+        const n = state.settings.count;
+        const note = n === 0 ? `เล่นครบทั้ง ${total} คำ` : n > total ? `หมวดนี้มี ${total} คำ จะเล่น ${total} ข้อ` : "";
+        if (note) section.append(el("p", "setting-note", note));
+      }
+      box.append(section);
+    });
+  }
+
+  function saveSettings() {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch (e) {}
+  }
+
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      SETTINGS.forEach(({ key, options }) => {
+        if (options.some((o) => o.value === saved[key])) state.settings[key] = saved[key];
+      });
+    } catch (e) {}
+    // เปิดจากเว็บรวมเกมด้วย ?cat=colors|body|verbs จะเข้าหมวดนั้นทันที
+    const fromUrl = new URLSearchParams(location.search).get("cat");
+    if (CATEGORIES[fromUrl]) state.settings.cat = fromUrl;
+  }
+
+  // ---------- เริ่มเกม ----------
+  function startGame() {
+    const { count } = state.settings;
+    const pool = shuffle([...category().words]);
+    const n = count === 0 ? pool.length : Math.min(count, pool.length);
+    state.questions = pool.slice(0, n);
+    state.index = 0;
+    state.score = 0;
+    state.missed = [];
+    state.round++;
+    $("score").textContent = "0";
+    showScreen("game");
+    renderQuestion();
+  }
+
+  // ---------- แสดงคำถาม ----------
+  function renderQuestion() {
+    const item = state.questions[state.index];
+    const type = state.settings.qtype;
+    const c = category();
+    state.firstTry = true;
+    state.locked = false;
+
+    $("counter").textContent = `ข้อ ${state.index + 1}/${state.questions.length}`;
+    $("progress").style.width = `${(state.index / state.questions.length) * 100}%`;
+    $("feedback").textContent = "";
+    $("feedback").className = "feedback";
+    $("meaning").textContent = "";
+
+    const prompt = $("prompt");
+    prompt.innerHTML = "";
+    $("choices").innerHTML = "";
+    $("choices").classList.toggle("hidden", type === "spell");
+    $("spell").classList.toggle("hidden", type !== "spell");
+
+    if (type === "pic") {
+      prompt.append(picture(item, "picture"), el("div", "question-text", c.picQuestion));
+      renderChoices(item, false);
+    } else if (type === "word") {
+      prompt.append(el("div", "word", item.display), el("div", "question-text", c.wordQuestion), speakButton(item.speakAs));
+      renderChoices(item, true);
+      speak(item.speakAs);
+    } else {
+      prompt.append(picture(item, "picture"), el("div", "thai", item.th), speakButton(item.speakAs));
+      renderSpell(item);
+    }
+    preloadUpcoming();
+  }
+
+  // ตัวเลือกหลอก: ไม่เอาคำกลุ่มเดียวกัน และ (หมวดร่างกาย) ไม่เอาคำจากภาพพื้นฐานเดียวกัน
+  function distractorsFor(item) {
+    const words = category().words;
+    const sceneOf = (w) => (BODY_PHOTOS[w.word] || [])[0];
+    const sameScene = (w) => state.settings.cat === "body" && sceneOf(w) === sceneOf(item);
+    const ok = (w) => w !== item && !(item.group && w.group === item.group) && !sameScene(w);
+    let pool = words.filter(ok);
+    if (pool.length < 3) pool = words.filter((w) => w !== item && !(item.group && w.group === item.group));
+    return shuffle(pool).slice(0, 3);
+  }
+
+  function renderChoices(item, asPicture) {
+    const options = shuffle([item, ...distractorsFor(item)]);
+    options.forEach((w, i) => {
+      const btn = el("button", "btn choice" + (asPicture ? " pic" : w.display.length > 9 ? " long" : ""));
+      btn.append(el("span", "key", String(i + 1)));
+      if (asPicture) btn.append(picture(w, "choice-pic"));
+      else btn.append(document.createTextNode(w.display));
+      btn.dataset.word = w.word;
+      btn.addEventListener("click", () => checkChoice(btn, w === item));
+      $("choices").append(btn);
+    });
+  }
+
+  // สะกดคำ: แป้นมีเฉพาะตัวอักษรของคำนั้น (ไม่มีตัวหลอก) · เว้นวรรคและ ' แสดงให้อัตโนมัติ
+  function renderSpell(item) {
+    state.spellPos = 0;
+    const slots = $("slots");
+    const tiles = $("tiles");
+    slots.innerHTML = "";
+    tiles.innerHTML = "";
+    const letters = [...item.word].filter((ch) => /[a-z]/.test(ch));
+    slots.classList.toggle("long", item.word.length > 8);
+    // แยกช่องเป็นกลุ่มตามคำ (และหลังขีด -) จะได้ขึ้นบรรทัดใหม่ระหว่างคำ ไม่ตัดกลางคำ
+    item.word.split(" ").flatMap((w) => w.split(/(?<=-)/)).forEach((part) => {
+      const group = el("span", "slot-word");
+      [...part].forEach((ch) => {
+        if (/[a-z]/.test(ch)) group.append(el("span", "slot letter"));
+        else group.append(el("span", "slot fixed", ch));
+      });
+      slots.append(group);
+    });
+
+    const shuffled = [...letters];
+    for (let i = 0; i < 10; i++) {
+      shuffle(shuffled);
+      if (shuffled.join("") !== letters.join("") || letters.length < 2) break;
+    }
+    shuffled.forEach((letter) => {
+      const btn = el("button", "btn tile", letter);
+      btn.dataset.letter = letter;
+      btn.addEventListener("click", () => tapTile(btn));
+      tiles.append(btn);
+    });
+    state.spellLetters = letters;
+  }
+
+  function setFeedback(text, kind) {
+    const fb = $("feedback");
+    fb.className = "feedback";
+    void fb.offsetWidth;
+    fb.textContent = text;
+    fb.className = `feedback ${kind}`;
+  }
+
+  function showMeaning(item) {
+    const box = $("meaning");
+    box.textContent = `${item.display} = ${item.th} `;
+    const credit = creditLink(item);
+    if (credit) box.append(credit);
+    if (item.example) box.append(el("span", "example", `“${item.example}” ${item.exampleTh}`));
+  }
+
+  // ---------- ตรวจคำตอบ ----------
+  function checkChoice(btn, isCorrect) {
+    if (state.locked || btn.disabled) return;
+    if (isCorrect) {
+      btn.classList.add("correct");
+      document.querySelectorAll(".choice").forEach((b) => (b.disabled = true));
+      answeredCorrectly();
+    } else {
+      state.firstTry = false;
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      setFeedback(pick(TRY_AGAIN), "bad");
+      sounds.wrong();
+    }
+  }
+
+  function tapTile(btn) {
+    if (state.locked || btn.disabled) return;
+    if (btn.dataset.letter === state.spellLetters[state.spellPos]) {
+      btn.disabled = true;
+      btn.classList.add("used");
+      const slot = $("slots").querySelectorAll(".slot.letter")[state.spellPos];
+      slot.textContent = btn.dataset.letter;
+      slot.classList.add("filled");
+      state.spellPos++;
+      if (state.spellPos === state.spellLetters.length) answeredCorrectly();
+      else sounds.letter();
+    } else {
+      wrongLetter(btn);
+    }
+  }
+
+  function wrongLetter(btn) {
+    state.firstTry = false;
+    if (btn) {
+      btn.classList.remove("wrong");
+      void btn.offsetWidth;
+      btn.classList.add("wrong");
+      setTimeout(() => btn.classList.remove("wrong"), 400);
+    }
+    setFeedback("ยังไม่ใช่ตัวนี้ ลองตัวอื่นนะ 🤔", "bad");
+    sounds.wrong();
+  }
+
+  function answeredCorrectly() {
+    const item = state.questions[state.index];
+    state.locked = true;
+    if (state.firstTry) {
+      state.score++;
+      $("score").textContent = state.score;
+    } else {
+      state.missed.push(item);
+    }
+    setFeedback(pick(PRAISES), "good");
+    showMeaning(item);
+    sounds.correct();
+    setTimeout(() => speak(item.speakAs), 300);
+    const round = state.round;
+    setTimeout(() => {
+      if (round !== state.round) return;
+      state.index++;
+      if (state.index >= state.questions.length) endGame();
+      else renderQuestion();
+    }, item.example ? 2300 : 1600);
+  }
+
+  // ---------- สรุปผล ----------
+  function endGame() {
+    state.locked = true;
+    state.round++;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    const total = state.questions.length;
+    const ratio = state.score / total;
+    const stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1;
+    $("progress").style.width = "100%";
+    $("stars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "" : "off"}" style="animation-delay:${n * 0.2}s">⭐</span>`).join("");
+    $("result-score").textContent = `ตอบถูก ${state.score} จาก ${total} ข้อ`;
+    const messages = {
+      3: ["🏆", "สุดยอด! จำคำศัพท์ได้เยอะมากเลย"],
+      2: ["🥳", "เก่งมาก! อีกนิดเดียวก็ได้ 3 ดาวแล้ว"],
+      1: ["🤗", "พยายามได้ดีมาก! ทบทวนคำศัพท์แล้วลองใหม่นะ"],
+    };
+    $("result-mascot").textContent = messages[stars][0];
+    $("result-msg").textContent = messages[stars][1];
+    renderReview();
+    showScreen("result");
+    sounds.finish();
+    launchConfetti(stars * 40);
+  }
+
+  function renderReview() {
+    const box = $("review");
+    box.innerHTML = "";
+    if (state.missed.length === 0) {
+      box.append(el("p", "perfect", "🌟 ไม่มีคำที่ต้องทบทวนเลย เก่งมาก!"));
+      return;
+    }
+    box.append(el("h2", "", "📚 คำที่ควรทบทวน"));
+    state.missed.forEach((item) => {
+      const row = el("div", "review-row");
+      const text = el("div");
+      text.append(el("div", "r-word", item.display), el("div", "r-thai", item.th));
+      const credit = creditLink(item);
+      if (credit) text.append(credit);
+      const btn = el("button", "btn speak-btn", "🔊");
+      btn.addEventListener("click", () => speak(item.speakAs));
+      row.append(picture(item, "r-pic"), text, btn);
+      box.append(row);
+    });
+  }
+
+  function launchConfetti(count) {
+    const colors = ["#ff7a59", "#ffc93c", "#2fb874", "#4d8dff", "#9a6cff", "#f2506a"];
+    for (let i = 0; i < count; i++) {
+      const piece = el("div", "confetti");
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.background = pick(colors);
+      piece.style.animationDuration = `${2 + Math.random() * 2}s`;
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
+      document.body.append(piece);
+      setTimeout(() => piece.remove(), 5000);
+    }
+  }
+
+  // ---------- ปุ่มต่าง ๆ ----------
+  function goHome() {
+    state.locked = true;
+    state.round++;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    renderSettings();
+    showScreen("start");
+  }
+
+  $("start-btn").addEventListener("click", startGame);
+  $("again-btn").addEventListener("click", startGame);
+  $("settings-btn").addEventListener("click", goHome);
+  $("home-btn").addEventListener("click", goHome);
+  $("sound-btn").addEventListener("click", () => {
+    state.soundOn = !state.soundOn;
+    $("sound-btn").textContent = state.soundOn ? "🔊" : "🔇";
+    if (!state.soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  // คีย์บอร์ด: 1–4 เลือกคำตอบ / พิมพ์ตัวอักษรเพื่อสะกดคำ
+  document.addEventListener("keydown", (e) => {
+    if (screens.game.classList.contains("hidden") || state.locked) return;
+    if (state.settings.qtype === "spell") {
+      const letter = e.key.toLowerCase();
+      if (!/^[a-z]$/.test(letter)) return;
+      const match = [...document.querySelectorAll(".tile:not(:disabled)")].find((t) => t.dataset.letter === letter);
+      if (match) tapTile(match);
+      else wrongLetter(null);
+      return;
+    }
+    const btn = document.querySelectorAll(".choice")[Number(e.key) - 1];
+    if (btn) btn.click();
+  });
+
+  loadSettings();
+  renderSettings();
+</script>
+</body>
+</html>

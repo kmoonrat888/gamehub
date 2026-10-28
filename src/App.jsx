@@ -9,6 +9,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/c/:catId" element={<Home />} />
         <Route path="/play/:id" element={<Play />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
