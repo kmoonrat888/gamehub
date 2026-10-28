@@ -1162,9 +1162,11 @@
 
     const box = $("settings");
     box.innerHTML = "";
-    SETTINGS.forEach((setting) => {
+    // เปิดจากเว็บรวมเกม (?cat=...) เลือกหมวดมาแล้ว จึงไม่ต้องแสดงตัวเลือกหมวดซ้ำ
+    const shown = SETTINGS.filter((s) => !(s.key === "cat" && state.catFromUrl));
+    shown.forEach((setting, i) => {
       const section = el("div", "setting");
-      section.append(el("p", "setting-label", setting.label));
+      section.append(el("p", "setting-label", `${i + 1}. ${setting.label.replace(/^\d+\.\s*/, "")}`));
       const options = el("div", "options" + (setting.grid ? " grid" : "") + (setting.grid === "two" ? " two" : ""));
       setting.options.forEach((opt) => {
         const btn = el("button", "btn option" + (state.settings[setting.key] === opt.value ? " selected" : ""));
@@ -1201,7 +1203,10 @@
     } catch (e) {}
     // เปิดจากเว็บรวมเกมด้วย ?cat=colors|body|verbs จะเข้าหมวดนั้นทันที
     const fromUrl = new URLSearchParams(location.search).get("cat");
-    if (CATEGORIES[fromUrl]) state.settings.cat = fromUrl;
+    if (CATEGORIES[fromUrl]) {
+      state.settings.cat = fromUrl;
+      state.catFromUrl = true;
+    }
   }
 
   // ---------- เริ่มเกม ----------
