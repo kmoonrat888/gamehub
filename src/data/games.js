@@ -34,6 +34,18 @@ export const GAMES = [
     features: ["70 คำ", "รูปถ่ายจริง", "สะกดคำ"],
   },
   {
+    id: "phonics-az",
+    title: "โหมด A–Z (Phonics)",
+    file: "phonics-az.html",
+    thumb: "phonics-az.png",
+    emoji: "🔤",
+    color: "#7b3fc4",
+    category: "english",
+    grade: "อนุบาล–ป.3",
+    description: "ตัวอักษร A–Z เทียบเสียงอ่าน และเทียบพยัญชนะไทย พร้อมตาราง A–Z ฟังเสียงได้",
+    features: ["26 ตัวอักษร", "เทียบเสียง", "เทียบพยัญชนะ"],
+  },
+  {
     id: "english-colors",
     title: "โหมดสี (Colors)",
     file: "english-words.html?cat=colors",

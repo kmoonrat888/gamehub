@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โหมด A–Z (Phonics)</title>
+<style>
+  :root {
+    --bg1: #dfe5ff;
+    --bg2: #d3efff;
+    --bg3: #d2f5ec;
+    --card: #ffffff;
+    --ink: #33295a;
+    --muted: #6d6590;
+    --primary: #ff7a59;
+    --green: #2fb874;
+    --red: #f2506a;
+    --yellow: #ffc93c;
+    --blue: #4d8dff;
+    --purple: #9a6cff;
+    --thai: #7b3fc4;
+    --orange: #ff9f1c;
+    --soft: #f2effb;
+    --shadow: 0 8px 0 rgba(51, 41, 90, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { height: 100%; }
+  body {
+    min-height: 100%;
+    font-family: "Leelawadee UI", "Segoe UI", "Tahoma", "Noto Sans Thai", sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2) 50%, var(--bg3));
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .screen {
+    width: 100%;
+    max-width: 580px;
+    background: var(--card);
+    border-radius: 32px;
+    box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.08);
+    padding: 26px 24px;
+    text-align: center;
+    animation: pop 0.35s ease;
+  }
+  .hidden { display: none !important; }
+
+  h1 { font-size: clamp(26px, 7vw, 36px); margin-bottom: 2px; }
+  .subtitle { font-size: 17px; opacity: 0.75; margin-bottom: 20px; }
+  .mascot { font-size: 60px; display: inline-block; animation: bounce 1.6s ease-in-out infinite; }
+
+  .btn {
+    font-family: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.2s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18); }
+  .btn:disabled { cursor: default; }
+
+  /* ---------- หน้าตั้งค่า ---------- */
+  .setting { margin-bottom: 18px; }
+  .setting-label { font-size: 18px; font-weight: 700; text-align: left; margin: 0 4px 10px; }
+  .options { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .options.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .option {
+    background: var(--soft);
+    color: var(--ink);
+    border: 3px solid transparent;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+    font-size: 17px;
+    padding: 8px 14px;
+    border-radius: 16px;
+  }
+  .options.grid .option { padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .option small { font-size: 13px; font-weight: 600; opacity: 0.7; }
+  .option.selected { background: #fff4d1; border-color: var(--yellow); animation: pop 0.25s ease; }
+  .start-btn { width: 100%; font-size: 26px; padding: 16px; margin-top: 6px; background: var(--green); }
+
+  /* ตาราง A–Z */
+  .table-wrap { margin-top: 26px; text-align: left; }
+  .table-head { display: flex; justify-content: space-between; align-items: center; margin: 0 4px 10px; }
+  .table-head .setting-label { margin: 0; }
+  .table-head small { color: var(--muted); font-weight: 700; font-size: 14px; }
+  .az-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+  .az-table th { font-size: 14px; color: var(--muted); padding: 0 8px; text-align: center; }
+  .az-table td { background: #faf8ff; padding: 6px 8px; text-align: center; vertical-align: middle; }
+  .az-table td:first-child { border-radius: 16px 0 0 16px; }
+  .az-table td:last-child { border-radius: 0 16px 16px 0; width: 56px; }
+  .az-table tr { cursor: pointer; }
+  .az-table tr.playing td { background: #fff4d1; }
+  .t-letter { font-size: 34px; font-weight: 900; line-height: 1; white-space: nowrap; }
+  .t-letter small { font-size: 26px; font-weight: 600; margin-left: 6px; }
+  .t-sound { font-size: 20px; font-weight: 700; }
+  .t-thai { font-size: 34px; font-weight: 800; color: var(--thai); line-height: 1.1; }
+  .t-pair { display: flex; justify-content: center; gap: 16px; }
+  .t-pair span { display: flex; flex-direction: column; align-items: center; }
+  .t-pair small { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .speak-btn { background: var(--blue); font-size: 18px; padding: 8px 11px; border-radius: 14px; }
+
+  /* ---------- หน้าเล่น ---------- */
+  .top-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; font-size: 18px; font-weight: 700; }
+  .icon-btn {
+    background: var(--soft);
+    color: var(--ink);
+    font-size: 22px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
+  .score { background: #fff4d1; padding: 6px 14px; border-radius: 14px; }
+  .progress { height: 14px; background: #eee9fb; border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--yellow), var(--primary)); border-radius: 99px; transition: width 0.4s ease; }
+
+  .prompt { min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; }
+  .big-letter {
+    font-size: clamp(90px, 28vw, 130px);
+    font-weight: 900;
+    line-height: 1;
+    animation: pop 0.4s ease;
+  }
+  .big-letter small { font-size: 0.6em; font-weight: 600; margin-left: 10px; }
+  .big-thai { font-size: clamp(90px, 28vw, 130px); font-weight: 800; color: var(--thai); line-height: 1.05; animation: pop 0.4s ease; }
+  .big-sound { font-size: 28px; font-weight: 800; color: var(--muted); }
+  .question-text { font-size: 18px; font-weight: 700; opacity: 0.75; }
+
+  .feedback { font-size: 22px; font-weight: 800; min-height: 32px; margin-bottom: 4px; }
+  .feedback.good { color: var(--green); animation: pop 0.3s ease; }
+  .feedback.bad { color: var(--red); animation: pop 0.3s ease; }
+  .meaning { font-size: 19px; font-weight: 700; min-height: 28px; margin-bottom: 10px; }
+
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .choice { font-size: 40px; padding: 14px 6px; background: var(--primary); position: relative; line-height: 1.15; }
+  .choice.sound { font-size: 30px; }
+  .choice:nth-child(2) { background: var(--blue); }
+  .choice:nth-child(3) { background: var(--purple); }
+  .choice:nth-child(4) { background: var(--orange); }
+  .choice .key { position: absolute; top: 6px; left: 10px; font-size: 13px; opacity: 0.7; }
+  .choice.correct { background: var(--green) !important; animation: pop 0.35s ease; }
+  .choice.wrong { background: #c9c3d9 !important; animation: shake 0.4s ease; }
+
+  /* ---------- สรุปผล ---------- */
+  .stars { font-size: 60px; margin: 8px 0; letter-spacing: 6px; }
+  .stars span { display: inline-block; animation: pop 0.5s ease backwards; }
+  .stars .off { filter: grayscale(1); opacity: 0.3; }
+  .result-score { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .result-msg { font-size: 19px; margin-bottom: 18px; }
+  .review { text-align: left; background: #faf8ff; border-radius: 20px; padding: 14px; margin-bottom: 20px; }
+  .review h2 { font-size: 19px; margin-bottom: 8px; text-align: center; }
+  .review-row { display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px dashed #e2dcf5; }
+  .review-row:last-child { border-bottom: none; }
+  .review-row .t-letter { font-size: 30px; }
+  .review .perfect { text-align: center; font-size: 18px; font-weight: 700; color: var(--green); }
+  .result-actions { display: grid; gap: 12px; }
+  .result-actions .btn { font-size: 22px; padding: 15px; }
+  .btn-primary { background: var(--primary); }
+  .btn-secondary { background: var(--blue); }
+
+  .confetti { position: fixed; top: -20px; width: 12px; height: 18px; border-radius: 3px; pointer-events: none; z-index: 10; animation: fall linear forwards; }
+
+  @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+  @keyframes bounce { 50% { transform: translateY(-12px); } }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+  @media (max-width: 400px) {
+    .screen { padding: 22px 16px; border-radius: 24px; }
+    .t-letter { font-size: 28px; }
+    .t-thai { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- หน้าตั้งค่า -->
+  <section id="start-screen" class="screen">
+    <div class="mascot">🔤</div>
+    <h1>โหมด A–Z (Phonics)</h1>
+    <p class="subtitle">ตัวอักษรอังกฤษ เทียบเสียง และเทียบพยัญชนะไทย</p>
+    <div id="settings"></div>
+    <button class="btn start-btn" id="start-btn">▶️ เริ่มเล่น</button>
+    <div class="table-wrap" id="table"></div>
+  </section>
+
+  <!-- หน้าเล่นเกม -->
+  <section id="game-screen" class="screen hidden">
+    <div class="top-bar">
+      <button class="btn icon-btn" id="home-btn" title="กลับหน้าตั้งค่า">🏠</button>
+      <span id="counter">ข้อ 1/10</span>
+      <span class="score">⭐ <span id="score">0</span></span>
+      <button class="btn icon-btn" id="sound-btn" title="เปิด/ปิดเสียง">🔊</button>
+    </div>
+    <div class="progress"><div class="progress-fill" id="progress"></div></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="meaning" id="meaning"></div>
+    <div class="choices" id="choices"></div>
+  </section>
+
+  <!-- หน้าสรุปผล -->
+  <section id="result-screen" class="screen hidden">
+    <div class="mascot" id="result-mascot">🏆</div>
+    <div class="stars" id="stars"></div>
+    <div class="result-score" id="result-score"></div>
+    <p class="result-msg" id="result-msg"></p>
+    <div class="review" id="review"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
+      <button class="btn btn-secondary" id="settings-btn">⚙️ เปลี่ยนการตั้งค่า</button>
+    </div>
+  </section>
+
+<script>
+  // ======================================================================
+  //  ตัวอักษร A–Z: เสียงอ่าน (phonics) และพยัญชนะไทยที่เทียบได้
+  //  pairs = [เสียง, พยัญชนะ] (G และ U มี 2 แบบ)
+  // ======================================================================
+  const LETTERS = [
+    ["A", [["แอะ", "อ"]]],
+    ["B", [["เบอะ", "บ"]]],
+    ["C", [["เคอะ", "ค"]]],
+    ["D", [["เดอะ", "ด"]]],
+    ["E", [["เอะ", "อ"]]],
+    ["F", [["ฟึ", "ฟ"]]],
+    ["G", [["เกอะ", "ก"], ["เจอะ", "จ"]]],
+    ["H", [["เฮอะ", "ฮ"]]],
+    ["I", [["อิ", "อ"]]],
+    ["J", [["เจอะ", "จ"]]],
+    ["K", [["เคอะ", "ค"]]],
+    ["L", [["อัล", "ล"]]],
+    ["M", [["มึม", "ม"]]],
+    ["N", [["อึน", "น"]]],
+    ["O", [["เอาะ", "อ"]]],
+    ["P", [["เพอะ", "พ"]]],
+    ["Q", [["เควอะ", "คว"]]],
+    ["R", [["เรอะ", "ร"]]],
+    ["S", [["ซึ", "ซ"]]],
+    ["T", [["ทึ", "ท"]]],
+    ["U", [["ยู", "ย"], ["อะ", "อ"]]],
+    ["V", [["เฝวอะ", "ฝว"]]],
+    ["W", [["เวอะ", "ว"]]],
+    ["X", [["เซอะ", "ซ"]]],
+    ["Y", [["เยอะ", "ย"]]],
+    ["Z", [["ซึ", "ซ"]]],
+  ].map(([upper, pairs]) => ({
+    upper,
+    lower: upper.toLowerCase(),
+    pairs,
+    sound: pairs.map((p) => p[0]).join(" / "),
+    thai: pairs.map((p) => p[1]).join(" / "),
+  }));
+
+  // สองตัวอักษร "ชนกัน" ถ้าเสียงหรือพยัญชนะซ้ำกันสักแบบ — จะไม่อยู่เป็นตัวเลือกในข้อเดียวกัน
+  const clash = (a, b) =>
+    a.pairs.some(([s, t]) => b.pairs.some(([s2, t2]) => s === s2 || t === t2));
+
+  const QTYPES = {
+    thai:   { label: "🔤 เทียบพยัญชนะ", sub: "ดูตัวอักษร เลือกพยัญชนะไทย" },
+    sound:  { label: "🔊 เทียบเสียง", sub: "ดูตัวอักษร เลือกเสียงอ่าน" },
+    letter: { label: "🔁 ทายตัวอักษร", sub: "ดูพยัญชนะ+เสียง เลือกตัวอักษร" },
+    mix:    { label: "🎲 คละแบบ", sub: "สุ่มทั้ง 3 แบบ" },
+  };
+  const SETTINGS = [
+    { key: "qtype", label: "รูปแบบคำถาม", grid: true, options: Object.entries(QTYPES).map(([value, q]) => ({ value, ...q })) },
+    { key: "count", label: "จำนวนข้อ", options: [{ value: 10, label: "10 ข้อ" }, { value: 20, label: "20 ข้อ" }, { value: 0, label: "ครบ A–Z (26 ข้อ)" }] },
+    { key: "order", label: "ลำดับ", options: [{ value: "random", label: "🎲 สุ่ม" }, { value: "abc", label: "🔠 เรียง A–Z" }] },
+  ];
+
+  const SETTINGS_KEY = "phonics-az-settings";
+  const PRAISES = ["เก่งมาก! 🎉", "ยอดเยี่ยม! 🌟", "ถูกต้อง! 👏", "Great job! 🚀", "Excellent! 💯"];
+  const TRY_AGAIN = ["ลองใหม่นะ 💪", "เกือบแล้ว! ลองอีกที 🤔", "ไม่เป็นไร ลองใหม่ 😊"];
+
+  const state = {
+    settings: { qtype: "thai", count: 10, order: "random" },
+    soundOn: true,
+    questions: [],
+    index: 0,
+    score: 0,
+    missed: [],
+    firstTry: true,
+    locked: false,
+    round: 0,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const screens = { start: $("start-screen"), game: $("game-screen"), result: $("result-screen") };
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function showScreen(name) {
+    Object.values(screens).forEach((s) => s.classList.add("hidden"));
+    screens[name].classList.remove("hidden");
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- เสียง ----------
+  // มือถือไม่ยอมเล่นเสียงจนกว่าจะแตะจอ จึงปลุกระบบเสียงตอนแตะครั้งแรก
+  let audioCtx = null;
+  let audioUnlocked = false;
+  function getAudioCtx() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try {
+      const ctx = getAudioCtx();
+      const src = ctx.createBufferSource();
+      src.buffer = ctx.createBuffer(1, 1, 22050);
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) {}
+    try {
+      if ("speechSynthesis" in window) {
+        const u = new SpeechSynthesisUtterance(" ");
+        u.volume = 0;
+        speechSynthesis.speak(u);
+      }
+    } catch (e) {}
+  }
+  ["pointerdown", "touchend", "click", "keydown"].forEach((type) =>
+    document.addEventListener(type, unlockAudio, { capture: true, passive: true })
+  );
+  function playTone(freq, duration, delay = 0, type = "sine") {
+    if (!state.soundOn) return;
+    try {
+      getAudioCtx();
+      const t = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + duration + 0.05);
+    } catch (e) {}
+  }
+  const sounds = {
+    correct() { playTone(660, 0.15); playTone(880, 0.25, 0.12); },
+    wrong() { playTone(220, 0.3, 0, "triangle"); },
+    finish() { [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.3, i * 0.15)); },
+  };
+
+  // อ่านออกเสียง: ชื่อตัวอักษรเป็นภาษาอังกฤษ แล้วตามด้วยเสียงอ่านภาษาไทย (เช่น "B" … "เบอะ")
+  const voices = { en: null, th: null };
+  function pickVoices() {
+    if (!("speechSynthesis" in window)) return;
+    const all = speechSynthesis.getVoices();
+    voices.en = all.find((v) => /^en[-_]us/i.test(v.lang)) || all.find((v) => /^en/i.test(v.lang)) || null;
+    voices.th = all.find((v) => /^th/i.test(v.lang)) || null;
+  }
+  if ("speechSynthesis" in window) {
+    pickVoices();
+    speechSynthesis.addEventListener?.("voiceschanged", pickVoices);
+  }
+  const spoken = [];
+  function say(text, lang, voice, rate) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = voice ? voice.lang : lang;
+    if (voice) u.voice = voice;
+    u.rate = rate;
+    spoken.push(u);
+    u.onend = u.onerror = () => spoken.splice(spoken.indexOf(u), 1);
+    speechSynthesis.speak(u);
+  }
+  function speakLetter(item) {
+    if (!state.soundOn || !("speechSynthesis" in window)) return;
+    try {
+      if (!voices.en || !voices.th) pickVoices();
+      const go = () => {
+        speechSynthesis.resume();
+        say(item.upper, "en-US", voices.en, 0.8);
+        say(item.pairs.map((p) => p[0]).join(" "), "th-TH", voices.th, 0.75);
+      };
+      if (speechSynthesis.speaking || speechSynthesis.pending) {
+        speechSynthesis.cancel();
+        setTimeout(go, 80);
+      } else go();
+    } catch (e) {}
+  }
+
+  // ---------- หน้าตั้งค่า ----------
+  function renderSettings() {
+    const box = $("settings");
+    box.innerHTML = "";
+    SETTINGS.forEach((setting, i) => {
+      const section = el("div", "setting");
+      section.append(el("p", "setting-label", `${i + 1}. ${setting.label}`));
+      const options = el("div", "options" + (setting.grid ? " grid" : ""));
+      setting.options.forEach((opt) => {
+        const btn = el("button", "btn option" + (state.settings[setting.key] === opt.value ? " selected" : ""));
+        btn.append(el("span", "", opt.label));
+        if (opt.sub) btn.append(el("small", "", opt.sub));
+        btn.addEventListener("click", () => {
+          state.settings[setting.key] = opt.value;
+          try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch (e) {}
+          renderSettings();
+        });
+        options.append(btn);
+      });
+      section.append(options);
+      box.append(section);
+    });
+    renderTable(SETTINGS.length + 1);
+  }
+
+  function letterCell(item) {
+    const td = el("td");
+    const d = el("div", "t-letter", item.upper);
+    d.append(el("small", "", item.lower));
+    td.append(d);
+    return td;
+  }
+
+  // ตาราง A–Z: ตัวอักษร | เสียงอ่าน | เทียบพยัญชนะ | ฟังเสียง
+  let tableBuilt = false;
+  function renderTable(number) {
+    const box = $("table");
+    if (tableBuilt) { box.querySelector(".setting-label").textContent = `${number}. ตาราง A–Z`; return; }
+    tableBuilt = true;
+    const head = el("div", "table-head");
+    head.append(el("p", "setting-label", `${number}. ตาราง A–Z`), el("small", "", "กดแถวเพื่อฟังเสียง"));
+    const table = el("table", "az-table");
+    table.innerHTML = "<thead><tr><th>ตัวอักษร</th><th>เสียงอ่าน</th><th>เทียบพยัญชนะ</th><th></th></tr></thead>";
+    const tbody = el("tbody");
+    LETTERS.forEach((item) => {
+      const tr = el("tr");
+      const sound = el("td");
+      const thai = el("td");
+      if (item.pairs.length === 1) {
+        sound.append(el("div", "t-sound", item.sound));
+        thai.append(el("div", "t-thai", item.thai));
+      } else {
+        // G, U: มี 2 เสียง แสดงคู่เสียง-พยัญชนะ
+        sound.append(el("div", "t-sound", item.sound));
+        const pair = el("div", "t-pair");
+        item.pairs.forEach(([s, t]) => {
+          const span = el("span");
+          span.append(el("small", "", s), el("div", "t-thai", t));
+          pair.append(span);
+        });
+        thai.append(pair);
+      }
+      const btnCell = el("td");
+      const btn = el("button", "btn speak-btn", "🔊");
+      btn.title = `ฟังเสียง ${item.upper}`;
+      btnCell.append(btn);
+      tr.append(letterCell(item), sound, thai, btnCell);
+      tr.addEventListener("click", () => {
+        speakLetter(item);
+        tbody.querySelectorAll("tr.playing").forEach((r) => r.classList.remove("playing"));
+        tr.classList.add("playing");
+      });
+      tbody.append(tr);
+    });
+    table.append(tbody);
+    box.append(head, table);
+  }
+
+  // ---------- เริ่มเกม ----------
+  function startGame() {
+    const { qtype, count, order } = state.settings;
+    let pool = order === "abc" ? [...LETTERS] : shuffle([...LETTERS]);
+    if (count && count < pool.length) {
+      pool = order === "abc" ? shuffle([...LETTERS]).slice(0, count).sort((a, b) => a.upper.localeCompare(b.upper)) : pool.slice(0, count);
+    }
+    state.questions = pool.map((item) => ({ item, type: qtype === "mix" ? pick(["thai", "sound", "letter"]) : qtype }));
+    state.index = 0;
+    state.score = 0;
+    state.missed = [];
+    state.round++;
+    $("score").textContent = "0";
+    showScreen("game");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const { item, type } = state.questions[state.index];
+    state.firstTry = true;
+    state.locked = false;
+    $("counter").textContent = `ข้อ ${state.index + 1}/${state.questions.length}`;
+    $("progress").style.width = `${(state.index / state.questions.length) * 100}%`;
+    $("feedback").textContent = "";
+    $("feedback").className = "feedback";
+    $("meaning").textContent = "";
+
+    const prompt = $("prompt");
+    prompt.innerHTML = "";
+    if (type === "letter") {
+      prompt.append(el("div", "big-thai", item.thai), el("div", "big-sound", `เสียง “${item.sound}”`), el("div", "question-text", "ตรงกับตัวอักษรภาษาอังกฤษตัวไหน?"));
+    } else {
+      const big = el("div", "big-letter", item.upper);
+      big.append(el("small", "", item.lower));
+      prompt.append(big, el("div", "question-text", type === "thai" ? "ตัวอักษรนี้เทียบได้กับพยัญชนะไทยตัวไหน?" : "ตัวอักษรนี้อ่านออกเสียงว่าอะไร?"));
+      const listen = el("button", "btn speak-btn", "🔊 ฟังชื่อตัวอักษร");
+      listen.addEventListener("click", () => speakEnglishOnly(item));
+      if (type === "thai") prompt.append(listen);
+    }
+
+    // ตัวเลือก: คำตอบ + ตัวอักษรอื่น 3 ตัวที่ไม่ชนกัน (เสียง/พยัญชนะไม่ซ้ำ)
+    const others = shuffle(LETTERS.filter((l) => l !== item && !clash(l, item)));
+    const picked = [];
+    for (const l of others) {
+      if (picked.length === 3) break;
+      if (picked.some((p) => clash(p, l))) continue;
+      picked.push(l);
+    }
+    const options = shuffle([item, ...picked]);
+    const box = $("choices");
+    box.innerHTML = "";
+    options.forEach((opt, i) => {
+      const text = type === "thai" ? opt.thai : type === "sound" ? opt.sound : `${opt.upper} ${opt.lower}`;
+      const btn = el("button", "btn choice" + (type === "sound" ? " sound" : ""));
+      btn.append(el("span", "key", String(i + 1)), document.createTextNode(text));
+      btn.dataset.letter = opt.upper;
+      btn.addEventListener("click", () => checkChoice(btn, opt === item));
+      box.append(btn);
+    });
+  }
+
+  function speakEnglishOnly(item) {
+    if (!state.soundOn || !("speechSynthesis" in window)) return;
+    try {
+      if (!voices.en) pickVoices();
+      if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+      speechSynthesis.resume();
+      say(item.upper, "en-US", voices.en, 0.8);
+    } catch (e) {}
+  }
+
+  function setFeedback(text, kind) {
+    const fb = $("feedback");
+    fb.className = "feedback";
+    void fb.offsetWidth;
+    fb.textContent = text;
+    fb.className = `feedback ${kind}`;
+  }
+
+  function checkChoice(btn, isCorrect) {
+    if (state.locked || btn.disabled) return;
+    const item = state.questions[state.index].item;
+    if (isCorrect) {
+      state.locked = true;
+      btn.classList.add("correct");
+      document.querySelectorAll(".choice").forEach((b) => (b.disabled = true));
+      if (state.firstTry) {
+        state.score++;
+        $("score").textContent = state.score;
+      } else {
+        state.missed.push(item);
+      }
+      setFeedback(pick(PRAISES), "good");
+      $("meaning").textContent = `${item.upper} ${item.lower} = เสียง “${item.sound}” เทียบ ${item.thai}`;
+      sounds.correct();
+      setTimeout(() => speakLetter(item), 300);
+      const round = state.round;
+      setTimeout(() => {
+        if (round !== state.round) return;
+        state.index++;
+        if (state.index >= state.questions.length) endGame();
+        else renderQuestion();
+      }, 2200);
+    } else {
+      state.firstTry = false;
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      setFeedback(pick(TRY_AGAIN), "bad");
+      sounds.wrong();
+    }
+  }
+
+  // ---------- สรุปผล ----------
+  function endGame() {
+    state.locked = true;
+    state.round++;
+    const total = state.questions.length;
+    const ratio = state.score / total;
+    const stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1;
+    $("progress").style.width = "100%";
+    $("stars").innerHTML = [1, 2, 3].map((n) => `<span class="${n <= stars ? "" : "off"}" style="animation-delay:${n * 0.2}s">⭐</span>`).join("");
+    $("result-score").textContent = `ตอบถูก ${state.score} จาก ${total} ข้อ`;
+    const messages = {
+      3: ["🏆", "สุดยอด! จำตัวอักษร A–Z ได้แม่นมาก"],
+      2: ["🥳", "เก่งมาก! อีกนิดเดียวก็ได้ 3 ดาวแล้ว"],
+      1: ["🤗", "พยายามได้ดีมาก! ทบทวนตาราง A–Z แล้วลองใหม่นะ"],
+    };
+    $("result-mascot").textContent = messages[stars][0];
+    $("result-msg").textContent = messages[stars][1];
+
+    const box = $("review");
+    box.innerHTML = "";
+    if (!state.missed.length) {
+      box.append(el("p", "perfect", "🌟 ไม่มีตัวอักษรที่ต้องทบทวนเลย เก่งมาก!"));
+    } else {
+      box.append(el("h2", "", "📚 ตัวอักษรที่ควรทบทวน"));
+      state.missed.forEach((item) => {
+        const row = el("div", "review-row");
+        const letter = el("div", "t-letter", item.upper);
+        letter.append(el("small", "", item.lower));
+        const text = el("div");
+        text.append(el("div", "t-sound", `เสียง “${item.sound}”`), el("div", "t-thai", item.thai));
+        text.querySelector(".t-thai").style.fontSize = "24px";
+        const btn = el("button", "btn speak-btn", "🔊");
+        btn.addEventListener("click", () => speakLetter(item));
+        row.append(letter, text, btn);
+        box.append(row);
+      });
+    }
+    showScreen("result");
+    sounds.finish();
+    const colors = ["#ff7a59", "#ffc93c", "#2fb874", "#4d8dff", "#9a6cff", "#f2506a"];
+    for (let i = 0; i < stars * 40; i++) {
+      const piece = el("div", "confetti");
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.background = pick(colors);
+      piece.style.animationDuration = `${2 + Math.random() * 2}s`;
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
+      document.body.append(piece);
+      setTimeout(() => piece.remove(), 5000);
+    }
+  }
+
+  function goHome() {
+    state.locked = true;
+    state.round++;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    renderSettings();
+    showScreen("start");
+  }
+
+  $("start-btn").addEventListener("click", startGame);
+  $("again-btn").addEventListener("click", startGame);
+  $("settings-btn").addEventListener("click", goHome);
+  $("home-btn").addEventListener("click", goHome);
+  $("sound-btn").addEventListener("click", () => {
+    state.soundOn = !state.soundOn;
+    $("sound-btn").textContent = state.soundOn ? "🔊" : "🔇";
+    if (!state.soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (screens.game.classList.contains("hidden") || state.locked) return;
+    const btn = document.querySelectorAll(".choice")[Number(e.key) - 1];
+    if (btn) btn.click();
+  });
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    SETTINGS.forEach(({ key, options }) => {
+      if (options.some((o) => o.value === saved[key])) state.settings[key] = saved[key];
+    });
+  } catch (e) {}
+  renderSettings();
+</script>
+</body>
+</html>
