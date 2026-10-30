@@ -169,8 +169,17 @@
   .photo-wrap { position: relative; width: 100%; height: 100%; }
   .photo-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
   .photo-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-  .picture, .choice-pic, .r-pic { display: flex; align-items: center; justify-content: center; }
-  .credit {
+  .crop-wrap {
+    position: relative;
+    height: 100%;
+    aspect-ratio: 1;
+    max-width: 100%;
+    margin: auto;
+    overflow: hidden;
+    border-radius: 14px;
+  }
+  .crop-wrap img { position: absolute; max-width: none; display: block; }
+  .picture, .choice-pic, .r-pic, .v-pic { display: flex; align-items: center; justify-content: center; }  .credit {
     font-size: 13px;
     font-weight: 600;
     color: var(--blue);
@@ -389,19 +398,26 @@
   // ======================================================================
   //  ภาพหมวดสี: หยดสี (Gold/Silver ใช้ไล่เฉดแบบโลหะ)
   // ======================================================================
-  const SPLAT = "M150 34 C206 34 256 70 258 124 C260 170 232 196 238 236 C242 262 212 270 204 246 C196 224 182 230 168 240 C148 254 116 252 100 236 C88 224 74 238 60 228 C40 214 54 190 48 164 C40 126 58 86 92 60 C108 46 128 34 150 34 Z";
-
+  // แผ่นสีเต็มกรอบ (เนื้อสีหยาบเล็กน้อยให้ดูเหมือนสีทาจริง) · Gold/Silver ใช้ไล่เฉดแบบโลหะ
+  let colorPicCount = 0;
   function colorPic(w) {
+    // id ต้องไม่ซ้ำกันทั้งหน้า: ถ้าซ้ำกับรูปในตารางที่ซ่อนอยู่ การไล่สีทอง/เงินจะหายไป
+    const id = `c-${w.word}-${++colorPicCount}`;
     let fill = w.hex;
-    let defs = "";
+    let defs = `<filter id="grain-${id}" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="3"/>
+        <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .16 0"/>
+        <feComposite in2="SourceGraphic" operator="in"/>
+      </filter>`;
     if (w.metal) {
       const [light, mid, dark] = w.metal;
-      defs = `<defs><linearGradient id="metal-${w.word}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${light}"/><stop offset=".45" stop-color="${mid}"/><stop offset=".55" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>`;
-      fill = `url(#metal-${w.word})`;
+      defs += `<linearGradient id="metal-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${light}"/><stop offset=".45" stop-color="${mid}"/><stop offset=".55" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient>`;
+      fill = `url(#metal-${id})`;
     }
-    const stroke = w.word === "white" ? `stroke="#b9b4cc" stroke-width="5"` : `stroke="rgba(0,0,0,.12)" stroke-width="3"`;
-    const shine = w.word === "white" ? "" : `<ellipse cx="112" cy="88" rx="26" ry="14" fill="#fff" opacity=".35" transform="rotate(-30 112 88)"/>`;
-    return `<svg class="pic-svg" viewBox="0 0 300 290" aria-hidden="true">${defs}<path d="${SPLAT}" fill="${fill}" ${stroke}/>${shine}</svg>`;
+    const border = w.word === "white" ? `stroke="#d4cfe3" stroke-width="6"` : "";
+    return `<svg class="pic-svg" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true"><defs>${defs}</defs>
+      <rect width="300" height="300" rx="22" fill="${fill}" ${border}/>
+      <rect width="300" height="300" rx="22" fill="${w.hex}" filter="url(#grain-${id})"/></svg>`;
   }
 
   // ======================================================================
@@ -697,7 +713,7 @@
       title: "ร่างกาย", en: "Body Parts",
       emoji: "🙆",
       subtitle: "ส่วนต่าง ๆ ของร่างกาย 51 คำ",
-      picQuestion: "ส่วนที่ลูกศรชี้ ภาษาอังกฤษคืออะไร?",
+      picQuestion: "ส่วนนี้ของร่างกาย ภาษาอังกฤษคืออะไร?",
       wordQuestion: "คำนี้คือส่วนไหนของร่างกาย?",
       pic: bodyPic,
       // scene = ภาพพื้นฐาน, x/y/r (หรือ rx/ry) = ตำแหน่งที่ไฮไลต์
@@ -992,14 +1008,14 @@
       "will": ["e/ee/Nigerian_Igbo_grandma_at_home_with_grandson.jpg", 1916, 2948],
     },
     home: {
-      "sofa": ["8/8c/Cozy_living_room_setup_with_a_warm_sofa%2C_coffee_cup%2C_and_an_open_book_in_a_softly_lit_environment.jpg", 4016, 6016],
+      "sofa": ["6/6c/Sofa_esquinero_con_chaise_longue.jpg", 960, 720],
       "armchair": ["https://upload.wikimedia.org/wikipedia/commons/7/73/Fauteuil_rond2.jpg", 287, 203],
       "table": ["2/2b/Dining_table_brown.jpg", 3072, 4096],
       "chair": ["c/c6/Set_of_fourteen_side_chairs_MET_DP110780.jpg", 3867, 4000],
-      "cabinet": ["e/e6/Serwantka.JPG", 1536, 2048],
-      "wardrobe": ["5/5f/Wardrobe_MET_DP235302.jpg", 2545, 3839],
+      "cabinet": ["7/7f/Chinese_ceramics_in_the_Charlier_Museum.jpg", 2166, 3039],
+      "wardrobe": ["9/9d/Clothes_hanged_inside_a_closet.jpg", 4032, 3024],
       "chest of drawers": ["6/6d/Luikse_Commode%2C_KBS-FRB_01.jpg", 1407, 1500],
-      "bed": ["4/42/Canopy_bed_of_Amantaka_Suite_in_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg", 5795, 4346],
+      "bed": ["9/91/Cozy_bedroom_with_a_large_bed_and_simple_decor_in_a_modern_home.jpg", 6016, 4016],
       "bedside table": ["3/3c/Bedside_Table_and_Lamp_by_Alekos_Fassianos.jpg", 3096, 4128],
       "desk": ["1/12/Bureau_table_MET_DP108643.jpg", 4000, 4000],
       "bookcase": ["e/ec/Bookshelf_Prunksaal_OeNB_Vienna_AT_matl00786ch.jpg", 3015, 2010],
@@ -1035,13 +1051,13 @@
       "spoon": ["9/92/Soup_Spoon.jpg", 1848, 1419],
       "knife": ["e/eb/2020_No%C5%BCe_kuchenne_Gerlach.jpg", 5257, 2281],
       "ladle": ["2/28/Greek_-_Ladle_-_Walters_57909.jpg", 1052, 1800],
-      "television": ["9/91/1990s_Television_Set.jpg", 409, 592],
+      "television": ["8/86/Best_LED_TV_2020.jpg", 6000, 4000, 20, 46, 42],
       "air-conditioner": ["e/eb/Panasonic_AIR_CONDITIONER_INDOOR_UNIT_CS-C10KJ2_%282%29.jpg", 6553, 3632],
       "washing machine": ["e/ec/LG_%EB%93%9C%EB%9F%BC%EC%84%B8%ED%83%81%EA%B8%B0%EC%99%80_%EC%8B%9D%EA%B8%B0%EC%84%B8%EC%B2%99%EA%B8%B0%2C_%EC%98%81%EA%B5%AD%EC%84%9C_%EB%AC%BC%EC%82%AC%EC%9A%A9_%ED%9A%A8%EC%9C%A8_%EC%B5%9C%EC%9A%B0%EC%88%98_%EC%A0%9C%ED%92%88_%EC%88%98%EC%83%81.jpg", 770, 1132],
       "vacuum cleaner": ["7/7a/Numatic_Henry_vacuum_cleaner_%283308986870%29_%28cropped%29.jpg", 2458, 1843],
       "iron": ["9/9f/Electric_steam_iron.jpg", 4301, 2856],
       "ironing board": ["0/03/Buegelbrett_%28fcm%29.jpg", 2522, 1883],
-      "broom": ["3/33/Broom%2C_doll%27s_%28AM_2013.51.8.1-1%29.jpg", 5184, 3456],
+      "broom": ["9/9d/Soom_Thai_Broom.JPG", 4608, 3456],
       "mop": ["d/d0/Blue_mop_and_mop_bucket_in_the_back_of_McDonald%27s.jpg", 1467, 3230],
       "dustpan": ["d/d6/Shovelilo.jpg", 1956, 1340],
       "bucket": ["c/c9/One_red_bucket.jpg", 3000, 4000],
@@ -1068,62 +1084,77 @@
       elbow: ["5/5c/Elbow_coude.JPG", 2256, 1496],
       calf: ["8/8f/L%C3%BDtka.jpg", 454, 663],
       hand2: ["a/a3/Hand%2C_fingers_-_back.jpg", 3840, 5760],
-    },
+      // รูปเฉพาะส่วน (เพิ่มสำหรับรูปซูมแบบไม่มีวงกลม)
+      shoulder2: ["5/55/Left_shoulder.jpg", 5760, 3840],
+      thigh2: ["8/88/Thigh.jpg", 410, 409],
+      arm2: ["6/6d/Extended_arm.jpg", 5760, 3840],
+      chest2: ["3/35/Male_Thorax.jpg", 342, 226],
+      abdomen2: ["0/02/The_after_shot-_Hang_in_there_with_your_little_one%2C_it_does_get_better%21_2013-10-20_22-12.jpg", 2048, 1536],
+      knee2: ["e/e7/Knee.female.jpg", 722, 595],
+      forehead2: ["6/69/Human_Forehead.JPG", 4000, 3000],
+      hair2: ["8/81/Braided_Hair_%28Unsplash%29.jpg", 6016, 4000],
+      neck2: ["9/99/Female_neck.jpg", 1024, 768],
+      adam2: ["1/1b/Adam%27s_apple_69.jpg", 3000, 4000],
+      hip2: ["3/3e/Kylie_Verzosa%2C_both_hands_on_hips_%28cropped%29.jpg", 1066, 1249],
+      bottom2: ["e/ed/Wrangler_13MWZ_jeans_back_detail_%282026-01-27%29_2.jpg", 3024, 4032],
+      wrist2: ["b/b2/Nadgarstek_%28ubt%29.jpeg", 1600, 1200],
+      chin2: ["e/e5/Two-days_stubble_chin.jpg", 4032, 3024],    },
   };
 
-  // หมวดร่างกาย: [ภาพพื้นฐาน, x%, y%, รัศมี% ของความกว้าง] หรือ { rx: % กว้าง, ry: % สูง } · noArrow = ไม่มีลูกศร
-  const BODY_PHOTOS = {
-    "body": ["front", 53, 50, { rx: 21, ry: 43, noArrow: true }],
-    "head": ["front", 50, 16, 8],
-    "eye": ["face", 34, 30, 5],
-    "ear": ["ear", 52, 48, { rx: 30, ry: 40, noArrow: true }],
-    "shoulder": ["front", 66, 22, 5],
-    "elbow": ["elbow", 61, 76, 10],
-    "hand": ["front", 64, 41, 5],
-    "thigh": ["knee", 30, 32, 11],
-    "leg": ["front", 50, 74, { rx: 11, ry: 14 }],
-    "toenail": ["foot", 91, 64, 3.5],
-    "toe": ["foot", 84, 70, 7],
-    "palm": ["hand", 40, 62, 14],
-    "arm": ["front", 69, 32, 5],
-    "mouth": ["face", 49, 69, 7],
-    "chest": ["front", 57, 28, 6],
-    "abdomen": ["navel", 50, 50, { rx: 42, ry: 42, noArrow: true }],
-    "navel": ["navel", 50, 42, 8],
-    "knee": ["knee", 57, 42, 9],
-    "foot": ["foot", 58, 55, { rx: 42, ry: 32, noArrow: true }],
-    "eyelid": ["eye", 55, 23, 7],
-    "armpit": ["armpit", 73, 33, 5],
-    "armpit hair": ["armpithair", 50, 48, 20],
-    "forehead": ["face", 49, 13, 7],
-    "eyelash": ["eye", 27, 34, 6],
-    "nose": ["face", 48, 46, 5],
-    "hair": ["face", 40, 6, 8],
-    "eyebrow": ["face", 36, 23, 5],
-    "cheek": ["face", 66, 53, 6],
-    "neck": ["front", 50, 23, 3.5],
-    "chin": ["face", 49, 85, 5],
-    "adam's apple": ["front", 50, 24, 2.5],
-    "gum": ["teeth", 28, 14, 6],
-    "tooth": ["teeth", 47, 40, 7],
-    "lip": ["face", 49, 72, 4],
-    "teeth": ["teeth", 50, 47, { rx: 42, ry: 40, noArrow: true }],
-    "earlobe": ["ear", 67, 82, 9],
-    "index finger": ["hand2", 63, 28, 5],
-    "tongue": ["tongue", 51, 77, 6],
-    "thumb": ["hand2", 75, 52, 6],
-    "little finger": ["hand2", 22, 30, 5],
-    "finger": ["hand2", 52, 24, 5],
-    "ring finger": ["hand2", 34, 36, 5],
-    "bone": ["bone", 50, 50, { rx: 46, ry: 42, noArrow: true }],
-    "wrist": ["hand2", 36, 80, 9],
-    "calf": ["calf", 30, 28, 12],
-    "back": ["back", 58, 70, 15],
-    "hip": ["front", 65, 52, 5],
-    "ankle": ["foot", 24, 48, 7],
-    "foot sole": ["sole", 52, 55, { rx: 32, ry: 30, noArrow: true }],
-    "heel": ["calf", 22, 82, 8],
-    "bottom": ["backfull", 67, 52, 5],
+  // หมวดร่างกาย: รูปซูมเฉพาะส่วน (ไม่มีวงกลม/ลูกศร) ครอปเป็นสี่เหลี่ยมจัตุรัสจากภาพพื้นฐาน
+  // [ภาพพื้นฐาน, กึ่งกลาง x%, กึ่งกลาง y%, ขนาด% ของความกว้างภาพ] หรือ [ภาพพื้นฐาน] = ใช้ทั้งภาพ
+  const BODY_CROPS = {
+    "body": ["front"],
+    "head": ["front", 50, 15, 26],
+    "eye": ["eye", 52, 52, 72],
+    "ear": ["ear", 54, 47, 92],
+    "shoulder": ["shoulder2", 45, 40, 60],
+    "elbow": ["elbow"],
+    "hand": ["hand2", 46, 42, 84],
+    "thigh": ["thigh2"],
+    "leg": ["front", 50, 72, 32],
+    "toenail": ["foot", 89, 66, 14],
+    "toe": ["foot", 84, 68, 26],
+    "palm": ["hand", 38, 60, 56],
+    "arm": ["arm2"],
+    "mouth": ["face", 49, 70, 20],
+    "chest": ["chest2"],
+    "abdomen": ["abdomen2", 45, 50, 75],
+    "navel": ["navel", 50, 42, 42],
+    "knee": ["knee2"],
+    "foot": ["foot", 56, 52, 80],
+    "eyelid": ["eye", 54, 30, 44],
+    "armpit": ["armpithair", 50, 50, 100],
+    "armpit hair": ["armpithair", 50, 50, 52],
+    "forehead": ["forehead2", 50, 33, 50],
+    "eyelash": ["eye", 32, 40, 40],
+    "nose": ["face", 48, 46, 17],
+    "hair": ["hair2", 30, 50, 55],
+    "eyebrow": ["face", 35, 24, 17],
+    "cheek": ["face", 66, 54, 17],
+    "neck": ["neck2", 45, 40, 55],
+    "chin": ["chin2", 50, 35, 55],
+    "adam's apple": ["adam2", 40, 42, 60],
+    "gum": ["teeth", 36, 16, 26],
+    "tooth": ["teeth", 47, 42, 22],
+    "lip": ["face", 49, 72, 12],
+    "teeth": ["teeth", 50, 50, 56],
+    "earlobe": ["ear", 66, 80, 42],
+    "index finger": ["hand2", 62, 25, 26],
+    "tongue": ["tongue", 51, 76, 24],
+    "thumb": ["hand2", 74, 50, 30],
+    "little finger": ["hand2", 22, 32, 24],
+    "finger": ["hand2", 52, 22, 26],
+    "ring finger": ["hand2", 34, 32, 26],
+    "bone": ["bone"],
+    "wrist": ["wrist2"],
+    "calf": ["calf", 30, 28, 62],
+    "back": ["back", 58, 68, 62],
+    "hip": ["hip2", 50, 72, 75],
+    "ankle": ["foot", 25, 48, 30],
+    "foot sole": ["sole", 50, 55, 72],
+    "heel": ["calf", 22, 80, 42],
+    "bottom": ["bottom2"],
   };
   // เติมค่าเริ่มต้น: display = ตัวแรกพิมพ์ใหญ่
   Object.values(CATEGORIES).forEach((cat) =>
@@ -1206,50 +1237,38 @@
   // small = ภาพย่อ 330px (ใช้ในตารางคำศัพท์ โหลดเร็วกว่า)
   function photoOf(item, small = false) {
     const cat = state.settings.cat;
-    let entry, mark;
+    if (cat === "colors") return null; // หมวดสีใช้แผ่นสีเต็มกรอบ (colorPic) ทุกสี ไม่ใช้รูปถ่าย
+    let entry, crop = null;
     if (cat === "body") {
-      const spec = BODY_PHOTOS[item.word];
+      const spec = BODY_CROPS[item.word];
       if (!spec) return null;
       entry = PHOTOS.bodyScenes[spec[0]];
-      mark = spec;
+      if (spec.length > 1) crop = spec.slice(1);
     } else {
       entry = (PHOTOS[cat] || {})[item.word];
     }
     if (!entry) return null;
-    const [path, w, h] = entry;
-    const px = small && (w ?? 500) >= 330 ? 330 : 500; // หมวดสัตว์ไม่ได้เก็บขนาดภาพ (ต้นฉบับใหญ่กว่า 500px ทุกรูป)
-    const src = path.startsWith("http") ? path : `${THUMB_BASE}/${path}/${px}px-${fileOf(path)}`;
+    const [path, w, h, ...zoom] = entry;
+    if (zoom.length === 3) crop = zoom; // ซูมเฉพาะส่วนของรูป (เช่น ทีวีในห้องนั่งเล่น)
+    // ขนาดภาพที่ขอ: ครอปเล็กต้องใช้ภาพใหญ่ขึ้นถึงจะชัด (Commons ให้ภาพย่อได้ไม่เกิน 1280px)
+    const want = (small ? 160 : 500) / (crop ? crop[2] / 100 : 1);
+    const buckets = [330, 500, 960, 1280].filter((b) => b < (w ?? 9999));
+    const px = buckets.find((b) => b >= want) || buckets[buckets.length - 1];
+    const src = path.startsWith("http") ? path
+      : px ? `${THUMB_BASE}/${path}/${px}px-${fileOf(path)}`
+      : `https://upload.wikimedia.org/wikipedia/commons/${path}`; // ภาพต้นฉบับเล็กกว่า 330px
     const page = path.startsWith("http") ? path : `https://commons.wikimedia.org/wiki/File:${fileOf(path)}`;
-    return { src, page, w, h, mark };
+    return { src, page, w, h, crop };
   }
 
-  // วงไฮไลต์ + ลูกศรบนรูปถ่าย (พิกัดเป็น % ของภาพ, viewBox กว้าง 100)
-  function photoMark(mark, w, h) {
-    const H = (100 * h) / w;
-    const [, px, py, size] = mark;
-    const opts = typeof size === "object" ? size : { r: size };
-    const x = px, y = (py / 100) * H;
-    const rx = opts.rx || opts.r;
-    const ry = opts.ry ? (opts.ry / 100) * H : opts.r;
-    const sw = 1.6;
-    let svg = `<svg viewBox="0 0 100 ${H.toFixed(2)}" aria-hidden="true">
-      <defs><marker id="ph-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#FF3B5C"/></marker></defs>
-      <ellipse class="hl" cx="${x}" cy="${y.toFixed(2)}" rx="${rx}" ry="${ry.toFixed(2)}" fill="rgba(255,59,92,.15)" stroke="#fff" stroke-width="${sw + 1.4}"/>
-      <ellipse class="hl" cx="${x}" cy="${y.toFixed(2)}" rx="${rx}" ry="${ry.toFixed(2)}" fill="none" stroke="#FF3B5C" stroke-width="${sw}"/>`;
-    if (!opts.noArrow) {
-      const dirX = x < 50 ? 1 : -1; // ลูกศรมาจากฝั่งที่มีที่ว่างมากกว่า
-      let sx = x + dirX * 24;
-      let sy = y < H * 0.3 ? y + 20 : y - 20;
-      sx = Math.min(97, Math.max(3, sx));
-      sy = Math.min(H - 3, Math.max(3, sy));
-      const dx = sx - x, dy = sy - y, len = Math.hypot(dx, dy) || 1;
-      const edge = Math.max(rx, ry) + 2;
-      const ex = x + (dx / len) * edge, ey = y + (dy / len) * edge;
-      const line = `x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"`;
-      svg += `<line ${line} stroke="#fff" stroke-width="${sw + 1.8}" stroke-linecap="round"/>
-              <line ${line} stroke="#FF3B5C" stroke-width="${sw + 0.4}" stroke-linecap="round" marker-end="url(#ph-arrow)"/>`;
-    }
-    return svg + "</svg>";
+  // ตำแหน่งภาพในกรอบครอปสี่เหลี่ยมจัตุรัส (เป็น % ของกรอบ) — ขยับไม่ให้เลยขอบภาพ
+  function cropStyle([cx, cy, size], w, h) {
+    size = Math.min(size, (100 * h) / w);          // ครอปสูงเกินภาพไม่ได้
+    const sh = (size * w) / h;                     // ความสูงครอปเป็น % ของความสูงภาพ
+    const x0 = Math.min(100 - size, Math.max(0, cx - size / 2));
+    const y0 = Math.min(100 - sh, Math.max(0, cy - sh / 2));
+    return `width:${(1e4 / size).toFixed(2)}%;height:${(1e4 / sh).toFixed(2)}%;` +
+      `left:${((-x0 * 100) / size).toFixed(2)}%;top:${((-y0 * 100) / sh).toFixed(2)}%`;
   }
 
   function picture(item, className, small = false) {
@@ -1258,9 +1277,10 @@
     const photo = photoOf(item, small);
     if (!photo) { fallback(); return box; }
 
-    // รูปใช้ object-fit: contain และ SVG ใช้ viewBox สัดส่วนเดียวกับรูป จึงย่อขยายตรงกันทุกขนาดกรอบ
-    const wrap = el("div", "photo-wrap");
+    // ทั้งภาพ: object-fit contain · ครอป: กรอบสี่เหลี่ยมจัตุรัส แล้วขยายภาพให้เห็นเฉพาะส่วนนั้น
+    const wrap = el("div", photo.crop ? "crop-wrap" : "photo-wrap");
     const img = el("img");
+    if (photo.crop) img.style.cssText = cropStyle(photo.crop, photo.w, photo.h);
     img.alt = "รูปภาพ"; // ไม่ใส่คำตอบ จะได้ไม่เฉลย
     img.draggable = false;
     if (small) img.loading = "lazy"; // ตารางคำศัพท์: โหลดเมื่อเลื่อนมาถึง
@@ -1272,7 +1292,6 @@
     });
     img.src = photo.src;
     wrap.append(img);
-    if (photo.mark) wrap.insertAdjacentHTML("beforeend", photoMark(photo.mark, photo.w, photo.h));
     box.append(wrap);
     return box;
   }
@@ -1556,7 +1575,7 @@
   // ตัวเลือกหลอก: ไม่เอาคำกลุ่มเดียวกัน และ (หมวดร่างกาย) ไม่เอาคำจากภาพพื้นฐานเดียวกัน
   function distractorsFor(item) {
     const words = category().words;
-    const sceneOf = (w) => (BODY_PHOTOS[w.word] || [])[0];
+    const sceneOf = (w) => (BODY_CROPS[w.word] || [])[0];
     const sameScene = (w) => state.settings.cat === "body" && sceneOf(w) === sceneOf(item);
     const ok = (w) => w !== item && !(item.group && w.group === item.group) && !sameScene(w);
     let pool = words.filter(ok);
