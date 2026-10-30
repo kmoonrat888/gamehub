@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import GameCard from "./GameCard.jsx";
+import ModeButton from "./ModeButton.jsx";
 import { gamesIn } from "../data/games.js";
 
 // Popup ใช้ <dialog> ของเบราว์เซอร์: ปิดด้วย Esc, ปุ่ม ✕ หรือคลิกพื้นที่มืดรอบ ๆ
@@ -38,9 +38,9 @@ export default function CategoryPopup({ category, onClose }) {
             ✕
           </button>
         </header>
-        <div className="game-grid">
+        <div className="mode-list">
           {games.map((game) => (
-            <GameCard key={game.id} game={game} />
+            <ModeButton key={game.id} game={game} />
           ))}
         </div>
       </div>
