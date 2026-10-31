@@ -653,6 +653,50 @@
     .images { gap: 8px; }
     .images figcaption, .found-list { display: none; }
   }
+  /* ---------- จอแข่งวิ่ง (แยกจากจอจับผิดภาพ) ---------- */
+  .race-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: linear-gradient(160deg, rgba(223, 229, 255, 0.97), rgba(210, 245, 236, 0.97));
+    overflow-y: auto;
+  }
+  .race-panel {
+    width: 100%;
+    max-width: 860px;
+    background: var(--card);
+    border-radius: 26px;
+    box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.12);
+    padding: 16px;
+    text-align: center;
+    animation: rise 0.3s ease;
+  }
+  .race-title { font-size: clamp(20px, 5.5vw, 28px); font-weight: 900; }
+  .race-info { font-size: clamp(16px, 4.2vw, 20px); font-weight: 800; color: var(--muted); min-height: 26px; }
+  .race-next { width: 100%; max-width: 360px; font-size: 21px; padding: 13px; margin-top: 10px; }
+  .race-screen .race { position: relative; top: auto; margin: 12px 0; border-width: 4px; box-shadow: none; }
+  .race-screen .stands { height: 84px; font-size: 24px; line-height: 27px; }
+  .race-screen .stands .banner { font-size: 18px; padding: 4px 16px; }
+  .race-screen .track { padding: 8px 0; }
+  .race-screen .lane { height: 54px; }
+  .race-screen .runner { transition: left 1.6s cubic-bezier(.3, .8, .4, 1); }
+  .race-screen .runner .body { font-size: 38px; }
+  .race-screen .runner .tag, .race-screen .runner.me .tag { display: inline; font-size: 12px; }
+  .race-screen .runner .medal { font-size: 22px; }
+  .race-screen .line { top: 8px; bottom: 8px; }
+  .race-screen .line span { display: inline; font-size: 11px; }
+  @media (max-height: 520px) {
+    .race-panel { padding: 8px 12px; }
+    .race-screen .race { margin: 6px 0; }
+    .race-screen .stands { height: 40px; font-size: 14px; line-height: 15px; }
+    .race-screen .lane { height: 32px; }
+    .race-screen .runner .body { font-size: 22px; }
+    .race-next { padding: 8px; font-size: 18px; margin-top: 4px; }
+  }
 </style>
 </head>
 <body>
@@ -704,14 +748,6 @@
       <span class="chip" id="timer">⏱️ 0:00</span>
       <button class="btn btn-soft icon-btn" id="sound-btn" title="เปิด/ปิดเสียง">🔊</button>
     </div>
-    <!-- สนามแข่งวิ่ง (โหมดแข่ง) -->
-    <div class="race hidden" id="race">
-      <div class="stands" id="stands"></div>
-      <div class="track" id="track">
-        <div class="line start-line"><span>START</span></div>
-        <div class="line finish-line"><span>FINISH</span></div>
-      </div>
-    </div>
     <div class="status">
       <span class="found-dots" id="found-dots"></span>
       <span class="wrong-count" id="wrong-count">❌ แตะผิด 0</span>
@@ -729,6 +765,22 @@
     </div>
     <div class="found-list" id="found-list"></div>
   </section>
+
+  <!-- จอแข่งวิ่ง (โหมดแข่ง): แสดงตอนเริ่ม หลังผ่านแต่ละภาพ และตอนเข้าเส้นชัย -->
+  <div class="race-screen hidden" id="race-screen">
+    <div class="race-panel">
+      <div class="race-title" id="race-title"></div>
+      <div class="race" id="race">
+        <div class="stands" id="stands"></div>
+        <div class="track" id="track">
+          <div class="line start-line"><span>START</span></div>
+          <div class="line finish-line"><span>FINISH</span></div>
+        </div>
+      </div>
+      <div class="race-info" id="race-info"></div>
+      <button class="btn btn-green race-next hidden" id="race-next"></button>
+    </div>
+  </div>
 
   <!-- นับถอยหลังก่อนเริ่มแข่ง -->
   <div class="countdown hidden" id="countdown"></div>
@@ -1558,7 +1610,7 @@
   }
 
   function canPlay() {
-    return state.scene && !state.cooldown && $("math-modal").classList.contains("hidden") &&
+    return state.scene && !state.cooldown && !state.raceVisible && $("math-modal").classList.contains("hidden") &&
       $("countdown").classList.contains("hidden") && state.found.size < DIFFS_PER_LEVEL;
   }
 
@@ -1644,7 +1696,7 @@
     const update = () => {
       if (state.mode === "race") {
         const me = state.race && state.race.runners[0];
-        $("timer").textContent = `🏁 อันดับ ${rankOf(me)} · ⏱️ ${fmt(Date.now() - state.race.start)}`;
+        $("timer").textContent = `🏁 อันดับ ${rankOf(me)} · 🏃 ${me.progress}/${RACE_STEPS}`;
       } else {
         $("timer").textContent = `⏱️ ${fmt(Date.now() - state.levelStart)}`;
       }
@@ -1715,9 +1767,11 @@
     setTimeout(() => { b.remove(); box.classList.remove("hype"); }, ms);
   }
 
+  // ตำแหน่งบนลู่ (shown) อัปเดตเฉพาะตอนจอแข่งวิ่งเปิดอยู่ จะได้เห็นตัวละครวิ่งตอนเปิดจอ
   function renderRunners() {
     state.race.runners.forEach((r) => {
-      const pct = START_X + (FINISH_X - START_X) * Math.min(1, r.progress / RACE_STEPS);
+      if (state.raceVisible) r.shown = r.progress;
+      const pct = START_X + (FINISH_X - START_X) * Math.min(1, (r.shown || 0) / RACE_STEPS);
       r.el.style.left = `${pct}%`;
       const place = r.finishedAt ? finishOrder().indexOf(r) : -1;
       r.el.querySelector(".medal").textContent = place >= 0 ? ["🥇", "🥈", "🥉", "🏅"][place] : "";
@@ -1736,10 +1790,10 @@
     return done.length + ahead + 1;
   }
 
-  function bump(runner) {
+  function bump(runner, ms = 650) {
     runner.el.classList.add("moving");
     clearTimeout(runner.moveTimer);
-    runner.moveTimer = setTimeout(() => runner.el.classList.remove("moving"), 650);
+    runner.moveTimer = setTimeout(() => runner.el.classList.remove("moving"), ms);
   }
 
   function crossFinish(runner) {
@@ -1747,7 +1801,9 @@
     runner.finishedAt = Date.now();
     sounds.cheer();
     const place = finishOrder().indexOf(runner) + 1;
-    standsBanner(runner.me ? `🎉 ${runner.name} เข้าเส้นชัยอันดับ ${place}!` : `${runner.char.face} ${runner.name} เข้าเส้นชัยอันดับ ${place}!`);
+    const text = runner.me ? `🎉 ${runner.name} เข้าเส้นชัยอันดับ ${place}!` : `${runner.char.face} ${runner.name} เข้าเส้นชัยอันดับ ${place}!`;
+    if (state.raceVisible) standsBanner(text);
+    else if (!runner.me) toast(text, 1800);
   }
 
   function advancePlayer() {
@@ -1758,7 +1814,7 @@
     sounds.step();
     bump(me);
     if (me.progress >= RACE_STEPS) crossFinish(me);
-    else if (leaderBefore !== me && leader() === me) { standsBanner(`📣 ${me.name} ขึ้นนำแล้ว!`); sounds.cheer(); }
+    else if (state.raceVisible && leaderBefore !== me && leader() === me) { standsBanner(`📣 ${me.name} ขึ้นนำแล้ว!`); sounds.cheer(); }
     renderRunners();
   }
 
@@ -1778,15 +1834,63 @@
         if (r.me || r.finishedAt) return;
         const before = Math.floor(r.progress);
         r.progress += r.rate * dt * (0.6 + Math.random() * 0.8); // สุ่มจังหวะ วิ่งเร็วบ้างช้าบ้าง
-        if (Math.floor(r.progress) > before) { bump(r); moved = true; }
+        if (Math.floor(r.progress) > before) { if (state.raceVisible) bump(r); moved = true; }
         if (r.progress >= RACE_STEPS) crossFinish(r);
       });
-      if (moved) renderRunners();
+      if (moved && state.raceVisible) renderRunners();
     }, 400);
   }
 
   function stopBots() {
     if (state.race) clearInterval(state.race.botTimer);
+  }
+
+  // เปิดจอแข่งวิ่ง: ตัวละครวิ่งจากตำแหน่งเดิมไปตำแหน่งปัจจุบัน
+  async function showRaceScreen(title) {
+    $("race-title").textContent = title;
+    $("race-next").classList.add("hidden");
+    $("race-screen").classList.remove("hidden");
+    state.raceVisible = false;
+    renderRunners();             // ตำแหน่งเดิม (ครั้งล่าสุดที่เห็น)
+    await sleep(80);
+    state.raceVisible = true;
+    const me = state.race.runners[0];
+    const ran = me.progress - (me.shown || 0);
+    state.race.runners.forEach((r) => { if (Math.round(r.progress) !== Math.round(r.shown || 0)) bump(r, 1700); });
+    renderRunners();             // วิ่งไปตำแหน่งปัจจุบัน (CSS transition 1.6 วินาที)
+    for (let i = 0; i < Math.min(8, Math.ceil(ran)); i++) setTimeout(sounds.step, i * 180);
+    const rank = rankOf(me);
+    $("race-info").textContent = me.finishedAt
+      ? `เข้าเส้นชัยอันดับ ${rank}! ⏱️ ${fmt(me.finishedAt - state.race.start)}`
+      : `ตอนนี้อันดับ ${rank} · วิ่งแล้ว ${me.progress}/${RACE_STEPS} ช่วง`;
+    if (!me.finishedAt && me.progress > 0) {
+      setTimeout(() => {
+        if (!state.raceVisible) return;
+        standsBanner(rank === 1 ? `📣 ${me.name} นำอยู่! เยี่ยมมาก!` : `📣 สู้ ๆ ${me.name}! แซงเลย!`, 2000);
+        sounds.cheer();
+      }, 900);
+    }
+  }
+
+  function hideRaceScreen() {
+    state.raceVisible = false;
+    $("race-screen").classList.add("hidden");
+    requestAnimationFrame(fitPics);
+  }
+
+  // พักที่จอแข่ง: ไปต่อเมื่อกดปุ่ม หรือครบเวลา
+  function raceBreak(label, waitMs, autoMs) {
+    return new Promise((resolve) => {
+      const btn = $("race-next");
+      let done = false;
+      const finish = () => { if (done) return; done = true; btn.onclick = null; resolve(); };
+      setTimeout(() => {
+        btn.textContent = label;
+        btn.classList.remove("hidden");
+        btn.onclick = finish;
+      }, waitMs);
+      setTimeout(finish, autoMs);
+    });
   }
 
   async function countdown(token) {
@@ -1825,21 +1929,26 @@
     saveSettings();
     state.levels = pickLevels();
     const racing = state.mode === "race";
-    $("race").classList.toggle("hidden", !racing);
+    state.raceVisible = false;
+    $("race-screen").classList.add("hidden");
     showScreen("game-screen");
     if (racing) {
       state.race = { runners: makeRunners(), start: 0, botTimer: null };
       buildStands();
       buildTrack();
+      await showRaceScreen("🏁 เตรียมตัวที่จุดเริ่มต้น!");
+      $("race-info").textContent = "หาจุดต่างและตอบคณิตให้ถูก ตัวละครจะวิ่งไปข้างหน้า";
       // โหลดภาพแรกระหว่างนับถอยหลัง
       const first = startLevel(0, token);
       if (!(await countdown(token))) return;
       state.race.start = Date.now();
+      startBots();
+      standsBanner("🏁 เริ่มแข่งแล้ว!", 1500);
+      await sleep(1500);
       await first;
       if (token !== state.token) return;
+      hideRaceScreen();
       startTimer();
-      startBots();
-      standsBanner("🏁 เริ่มแข่งแล้ว! หาจุดต่างให้ไว!", 1800);
     } else {
       state.race = null;
       startLevel(0, token);
@@ -1989,24 +2098,40 @@
     }
   }
 
-  function nextAfterMath() {
+  async function nextAfterMath() {
     $("math-modal").classList.add("hidden");
-    if (state.level < state.levels.length - 1) startLevel(state.level + 1);
-    else if (state.mode === "race") finishRace();
-    else showFinal();
+    const last = state.level >= state.levels.length - 1;
+    if (state.mode !== "race") return last ? showFinal() : startLevel(state.level + 1);
+    if (last) return finishRace();
+    const token = state.token;
+    const next = state.level + 1;
+    state.scene = null; // ระหว่างอยู่จอแข่ง แตะภาพไม่ได้
+    await showRaceScreen(`🏃 ผ่านภาพที่ ${next} แล้ว! วิ่งเลย!`);
+    const loading = startLevel(next, token); // โหลดภาพถัดไปไว้ระหว่างดูการแข่ง
+    await raceBreak(`ไปภาพที่ ${next + 1} ▶`, 1800, 6000);
+    await loading;
+    if (token !== state.token) return;
+    hideRaceScreen();
   }
 
   // ---------- จบการแข่ง ----------
   async function finishRace() {
     const token = state.token;
     const me = state.race.runners[0];
+    state.scene = null;
+    await showRaceScreen("🏁 วิ่งเข้าเส้นชัย!");
     if (!me.finishedAt) crossFinish(me); // กันพลาด: ครบทุกขั้นแล้วต้องถึงเส้นชัย
     renderRunners();
-    state.scene = null;
-    await sleep(1800);
+    stopTimer();
+    await sleep(1700);
+    if (token !== state.token) return;
+    $("race-info").textContent = `เข้าเส้นชัยอันดับ ${rankOf(me)}! ⏱️ ${fmt(me.finishedAt - state.race.start)}`;
+    standsBanner(`🎉 ${me.name} เข้าเส้นชัยอันดับ ${rankOf(me)}!`, 3000);
+    sounds.cheer();
+    await raceBreak("🏆 ดูผลการแข่งขัน", 1200, 5000);
     if (token !== state.token) return;
     stopBots();
-    stopTimer();
+    hideRaceScreen();
     showRaceResult();
   }
 
@@ -2081,6 +2206,8 @@
     state.scene = null;
     $("math-modal").classList.add("hidden");
     $("countdown").classList.add("hidden");
+    state.raceVisible = false;
+    $("race-screen").classList.add("hidden");
     renderSetup();
     showScreen("start-screen");
   }
