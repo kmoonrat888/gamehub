@@ -600,6 +600,69 @@
   const verbPic = (w) => `<div class="pic-emoji" aria-hidden="true">${w.pic}</div>`;
 
   // ======================================================================
+  //  ภาพหมวดวัน เดือน ปี: หน้าปฏิทิน (ไม่มีตัวอักษรอังกฤษ จะได้ไม่เฉลย)
+  //  w.color = [สีหัวปฏิทิน, สีตัวอักษร] · w.cal = แบบภาพของคำบอกเวลา
+  // ======================================================================
+  function calendarPic(w) {
+    const [head, ink] = w.color || ["#ff7a59", "#e0562f"];
+    const cell = (x, y, cw, ch, fill) => `<rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}"/>`;
+    const star = (x, y, size = 22) => `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${size}">⭐</text>`;
+    const OFF = "#ece8f5";
+    let inner = "";
+
+    if (w.kind === "day") {
+      inner = `<text x="150" y="190" text-anchor="middle" dominant-baseline="central" font-size="92" font-weight="800" fill="${ink}">${w.abbr}</text>`;
+    } else if (w.kind === "month") {
+      inner = `<text x="150" y="160" text-anchor="middle" dominant-baseline="central" font-size="84" font-weight="800" fill="${ink}">${w.num}</text>` +
+        `<text x="150" y="240" text-anchor="middle" dominant-baseline="central" font-size="46">${w.emoji}</text>`;
+    } else if (w.cal.type === "strip") {
+      // เมื่อวาน · วันนี้ ⭐ · พรุ่งนี้ · มะรืน — ช่องที่หมายถึงเป็นสี มีลูกศรจากวันนี้
+      const x0 = 34, cw = 52, gap = 8, y = 130;
+      const cx = (i) => x0 + i * (cw + gap) + cw / 2;
+      const target = w.cal.target + 1; // ช่องที่ 0..3 (วันนี้ = ช่องที่ 1)
+      for (let i = 0; i < 4; i++) inner += cell(x0 + i * (cw + gap), y, cw, 64, i === target ? head : OFF);
+      inner += star(cx(1), y + 32, 26);
+      if (target !== 1) {
+        const a = cx(1), b = cx(target);
+        inner += `<path d="M${a} 208 Q${(a + b) / 2} 252 ${b} 214" fill="none" stroke="${ink}" stroke-width="6" stroke-linecap="round"/>` +
+          `<path d="M${b} 198 l-13 20 h26z" fill="${ink}"/>`; // หัวลูกศรชี้ขึ้นไปที่ช่องเป้าหมาย
+      }
+    } else if (w.cal.type === "weeks") {
+      // 3 แถว = อาทิตย์ที่แล้ว / อาทิตย์นี้ (มี ⭐ วันนี้) / อาทิตย์หน้า
+      const x0 = 33, cw = 30, gap = 4;
+      [118, 168, 218].forEach((y, row) => {
+        for (let i = 0; i < 7; i++) inner += cell(x0 + i * (cw + gap), y, cw, 40, row === w.cal.target + 1 ? head : OFF);
+      });
+      inner += star(x0 + 3 * (cw + gap) + cw / 2, 188, 20);
+    } else if (w.cal.type === "grid") {
+      // หน้าปฏิทินเดือน 5 แถว: ไฮไลต์ 1 ช่อง (วัน) / 1 แถว (สัปดาห์) / ทั้งหมด (เดือน)
+      const x0 = 33, cw = 30, gap = 4, ch = 26;
+      for (let r = 0; r < 5; r++) {
+        for (let i = 0; i < 7; i++) {
+          const on = w.cal.hl === "all" || (w.cal.hl === "row" && r === 2) || (w.cal.hl === "cell" && r === 2 && i === 3);
+          inner += cell(x0 + i * (cw + gap), 112 + r * (ch + 6), cw, ch, on ? head : OFF);
+        }
+      }
+    } else if (w.cal.type === "year") {
+      // 12 ปฏิทินเล็ก = 1 ปี
+      const colors = ["#4d8dff", "#ff6fa8", "#ff8a1f", "#2fb874"];
+      for (let r = 0; r < 3; r++) {
+        for (let i = 0; i < 4; i++) {
+          const x = 38 + i * 58, y = 110 + r * 54;
+          inner += cell(x, y, 50, 44, OFF) + `<rect x="${x}" y="${y}" width="50" height="13" rx="5" fill="${colors[(i + r) % 4]}"/>`;
+        }
+      }
+    }
+
+    return `<svg class="pic-svg" viewBox="0 0 300 300" aria-hidden="true">
+      <rect x="20" y="30" width="260" height="250" rx="24" fill="#fff" stroke="#d9d2ee" stroke-width="4"/>
+      <path d="M20 54a24 24 0 0 1 24-24h212a24 24 0 0 1 24 24v36H20z" fill="${head}"/>
+      <rect x="80" y="14" width="14" height="36" rx="7" fill="#7a6f99"/>
+      <rect x="206" y="14" width="14" height="36" rx="7" fill="#7a6f99"/>
+      ${inner}</svg>`;
+  }
+
+  // ======================================================================
   //  คำศัพท์ทั้ง 3 หมวด
   //  word = คำที่ใช้สะกด (ตัวพิมพ์เล็ก), display = คำที่แสดง, th = ความหมาย
   //  group = คำที่ภาพหรือความหมายคล้ายกัน จะไม่อยู่เป็นตัวเลือกในข้อเดียวกัน
@@ -881,6 +944,57 @@
         { word: "dustpan", th: "ที่โกยผง", pic: "🧹", group: "sweep" },
         { word: "bucket", th: "ถังน้ำ", pic: "💧", group: "bin" },
         { word: "bin", display: "Bin / Trash can", th: "ถังขยะ", pic: "🗑️", group: "bin", speakAs: "Bin. Trash can." },
+      ],
+    },
+
+    // kind = ชนิดคำ ตัวเลือกหลอกจะใช้คำชนิดเดียวกันก่อน (วันหลอกด้วยวัน เดือนหลอกด้วยเดือน)
+    time: {
+      title: "วัน เดือน ปี", en: "Days & Months",
+      emoji: "📅",
+      subtitle: "วัน 7 วัน เดือน 12 เดือน และคำบอกเวลา รวม 30 คำ",
+      picQuestion: "ภาษาอังกฤษคือคำไหน?",
+      wordQuestion: "คำนี้แปลว่าอะไร?",
+      thaiPrompt: true,   // ทายคำศัพท์อังกฤษ: แสดงคำไทยใต้รูป
+      textChoices: true,  // ทายคำศัพท์ไทย: ตัวเลือกเป็นคำไทยแทนรูป
+      qtypeLabels: {
+        pic: ["🇬🇧 ทายคำศัพท์อังกฤษ", "ดูคำไทย เลือกคำอังกฤษ"],
+        word: ["🇹🇭 ทายคำศัพท์ไทย", "ดูคำอังกฤษ เลือกคำไทย"],
+      },
+      pic: calendarPic,
+      words: [
+        // วันทั้ง 7 (สีประจำวันแบบไทย)
+        { word: "sunday", th: "วันอาทิตย์", kind: "day", abbr: "อา.", color: ["#e53935", "#d32f2f"] },
+        { word: "monday", th: "วันจันทร์", kind: "day", abbr: "จ.", color: ["#f2c200", "#c79100"] },
+        { word: "tuesday", th: "วันอังคาร", kind: "day", abbr: "อ.", color: ["#ff6fa8", "#e0457f"] },
+        { word: "wednesday", th: "วันพุธ", kind: "day", abbr: "พ.", color: ["#2fb874", "#1f8f57"] },
+        { word: "thursday", th: "วันพฤหัสบดี", kind: "day", abbr: "พฤ.", color: ["#ff8a1f", "#e06d00"] },
+        { word: "friday", th: "วันศุกร์", kind: "day", abbr: "ศ.", color: ["#4fc3f7", "#1e88c7"] },
+        { word: "saturday", th: "วันเสาร์", kind: "day", abbr: "ส.", color: ["#9a6cff", "#7b4fe0"] },
+        // เดือนทั้ง 12 (สีตามฤดู: หนาว ฟ้า · ร้อน ส้ม · ฝน เขียว)
+        { word: "january", th: "มกราคม", kind: "month", num: 1, emoji: "🎆", color: ["#4d8dff", "#2f6fe0"] },
+        { word: "february", th: "กุมภาพันธ์", kind: "month", num: 2, emoji: "💝", color: ["#4d8dff", "#2f6fe0"] },
+        { word: "march", th: "มีนาคม", kind: "month", num: 3, emoji: "☀️", color: ["#ff8a1f", "#e06d00"] },
+        { word: "april", th: "เมษายน", kind: "month", num: 4, emoji: "💦", color: ["#ff8a1f", "#e06d00"] },
+        { word: "may", th: "พฤษภาคม", kind: "month", num: 5, emoji: "🥭", color: ["#ff8a1f", "#e06d00"] },
+        { word: "june", th: "มิถุนายน", kind: "month", num: 6, emoji: "🌧️", color: ["#2fb874", "#1f8f57"] },
+        { word: "july", th: "กรกฎาคม", kind: "month", num: 7, emoji: "☔", color: ["#2fb874", "#1f8f57"] },
+        { word: "august", th: "สิงหาคม", kind: "month", num: 8, emoji: "👩‍👦", color: ["#2fb874", "#1f8f57"] },
+        { word: "september", th: "กันยายน", kind: "month", num: 9, emoji: "🌱", color: ["#2fb874", "#1f8f57"] },
+        { word: "october", th: "ตุลาคม", kind: "month", num: 10, emoji: "🎃", color: ["#2fb874", "#1f8f57"] },
+        { word: "november", th: "พฤศจิกายน", kind: "month", num: 11, emoji: "🪷", color: ["#4d8dff", "#2f6fe0"] },
+        { word: "december", th: "ธันวาคม", kind: "month", num: 12, emoji: "🎄", color: ["#4d8dff", "#2f6fe0"] },
+        // คำบอกเวลา
+        { word: "day", th: "วัน", kind: "time", cal: { type: "grid", hl: "cell" }, example: "Have a nice day.", exampleTh: "ขอให้เป็นวันที่ดีนะ" },
+        { word: "week", th: "สัปดาห์ / อาทิตย์", kind: "time", cal: { type: "grid", hl: "row" }, example: "A week has seven days.", exampleTh: "หนึ่งสัปดาห์มีเจ็ดวัน" },
+        { word: "month", th: "เดือน", kind: "time", cal: { type: "grid", hl: "all" }, example: "My birthday is this month.", exampleTh: "วันเกิดของฉันอยู่ในเดือนนี้" },
+        { word: "year", th: "ปี", kind: "time", cal: { type: "year" }, example: "Happy New Year!", exampleTh: "สวัสดีปีใหม่" },
+        { word: "today", th: "วันนี้", kind: "time", cal: { type: "strip", target: 0 }, example: "Today is Monday.", exampleTh: "วันนี้วันจันทร์" },
+        { word: "tomorrow", th: "พรุ่งนี้", kind: "time", cal: { type: "strip", target: 1 }, example: "See you tomorrow.", exampleTh: "เจอกันพรุ่งนี้" },
+        { word: "yesterday", th: "เมื่อวาน", kind: "time", cal: { type: "strip", target: -1 }, example: "I was sick yesterday.", exampleTh: "เมื่อวานฉันป่วย" },
+        { word: "the day after tomorrow", th: "วันมะรืน", kind: "time", cal: { type: "strip", target: 2 }, example: "We have a test the day after tomorrow.", exampleTh: "พวกเรามีสอบวันมะรืน" },
+        { word: "this week", th: "อาทิตย์นี้", kind: "time", cal: { type: "weeks", target: 0 }, example: "I am busy this week.", exampleTh: "อาทิตย์นี้ฉันยุ่ง" },
+        { word: "last week", th: "อาทิตย์ที่แล้ว", kind: "time", cal: { type: "weeks", target: -1 }, example: "I went to the sea last week.", exampleTh: "อาทิตย์ที่แล้วฉันไปทะเล" },
+        { word: "next week", th: "อาทิตย์หน้า", kind: "time", cal: { type: "weeks", target: 1 }, example: "School starts next week.", exampleTh: "โรงเรียนเปิดอาทิตย์หน้า" },
       ],
     },
   };
@@ -1456,7 +1570,9 @@
       const section = el("div", "setting");
       section.append(el("p", "setting-label", `${i + 1}. ${setting.label.replace(/^\d+\.\s*/, "")}`));
       const options = el("div", "options" + (setting.grid ? " grid" : "") + (setting.grid === "two" ? " two" : ""));
-      setting.options.forEach((opt) => {
+      // บางหมวด (เช่น วัน เดือน ปี) ตั้งชื่อรูปแบบคำถามเอง
+      const labels = setting.key === "qtype" ? c.qtypeLabels || {} : {};
+      setting.options.map((o) => (labels[o.value] ? { ...o, label: labels[o.value][0], sub: labels[o.value][1] } : o)).forEach((opt) => {
         const btn = el("button", "btn option" + (state.settings[setting.key] === opt.value ? " selected" : ""));
         btn.append(el("span", "", opt.label));
         if (opt.sub) btn.append(el("small", "", opt.sub));
@@ -1578,11 +1694,13 @@
     $("spell").classList.toggle("hidden", type !== "spell");
 
     if (type === "pic") {
-      prompt.append(picture(item, "picture"), el("div", "question-text", c.picQuestion));
+      prompt.append(picture(item, "picture"));
+      if (c.thaiPrompt) prompt.append(el("div", "thai", item.th));
+      prompt.append(el("div", "question-text", c.picQuestion));
       renderChoices(item, false);
     } else if (type === "word") {
       prompt.append(el("div", "word", item.display), el("div", "question-text", c.wordQuestion), speakButton(item.speakAs));
-      renderChoices(item, true);
+      renderChoices(item, !c.textChoices);
       speak(item.speakAs);
     } else {
       prompt.append(picture(item, "picture"), el("div", "thai", item.th), speakButton(item.speakAs));
@@ -1599,16 +1717,25 @@
     const ok = (w) => w !== item && !(item.group && w.group === item.group) && !sameScene(w);
     let pool = words.filter(ok);
     if (pool.length < 3) pool = words.filter((w) => w !== item && !(item.group && w.group === item.group));
+    if (item.kind) {
+      // ใช้คำชนิดเดียวกันเป็นตัวหลอกก่อน (เช่น Monday หลอกด้วยวันอื่น) จะได้ต้องคิดจริง
+      const same = shuffle(pool.filter((w) => w.kind === item.kind));
+      const rest = shuffle(pool.filter((w) => w.kind !== item.kind));
+      return [...same, ...rest].slice(0, 3);
+    }
     return shuffle(pool).slice(0, 3);
   }
 
+  // asPicture = ตัวเลือกเป็นรูป · หมวดที่มี textChoices และไม่ใช่รูป จะแสดงคำไทยเมื่อถามด้วยคำอังกฤษ
   function renderChoices(item, asPicture) {
     const options = shuffle([item, ...distractorsFor(item)]);
+    const thaiText = category().textChoices && state.settings.qtype === "word";
     options.forEach((w, i) => {
-      const btn = el("button", "btn choice" + (asPicture ? " pic" : w.display.length > 9 ? " long" : ""));
+      const text = thaiText ? w.th : w.display;
+      const btn = el("button", "btn choice" + (asPicture ? " pic" : text.length > 9 ? " long" : ""));
       btn.append(el("span", "key", String(i + 1)));
       if (asPicture) btn.append(picture(w, "choice-pic"));
-      else btn.append(document.createTextNode(w.display));
+      else btn.append(document.createTextNode(text));
       btn.dataset.word = w.word;
       btn.addEventListener("click", () => checkChoice(btn, w === item));
       $("choices").append(btn);

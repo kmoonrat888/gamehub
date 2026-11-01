@@ -94,6 +94,17 @@ export const GAMES = [
     features: ["54 คำ", "รูปถ่ายจริง", "สะกดคำ"],
   },
   {
+    id: "english-time",
+    title: "โหมดวัน เดือน ปี (Days & Months)",
+    file: "english-words.html?cat=time",
+    emoji: "📅",
+    color: "#00a6a6",
+    category: "english",
+    grade: "ป.1–ป.6",
+    description: "วัน 7 วัน เดือน 12 เดือน และคำบอกเวลา เช่น today, tomorrow, next week ทายคำอังกฤษ ทายคำไทย และสะกดคำ",
+    features: ["30 คำ", "ทายไทย/อังกฤษ", "สะกดคำ"],
+  },
+  {
     id: "p2-final-exam",
     title: "ข้อสอบปลายภาค คณิต ป.2",
     file: "p2-math-final-exam.html",
