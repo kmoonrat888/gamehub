@@ -1,6 +1,6 @@
 // ======================================================================
 //  ระบบอันดับคะแนนสูงสุด (Supabase) — ใช้ร่วมกันทุกเกม
-//  ใช้คู่กับ supabase-config.js:
+//  ใช้คู่กับ supabase-config.js (ไฟล์นี้ vite.config.js สร้างจาก env ตอน build):
 //    <script src="supabase-config.js"></script>
 //    <script src="leaderboard.js"></script>
 //
@@ -157,7 +157,7 @@
     if (!container) return;
     container.innerHTML = "";
     // ยังไม่ได้ตั้งค่า Supabase: ไม่แสดงอะไรในเกม (เด็กไม่ต้องเห็นข้อความเทคนิค)
-    if (!config()) return console.info("Leaderboard: ยังไม่ได้ตั้งค่า supabase-config.js");
+    if (!config()) return console.info("Leaderboard: ยังไม่ได้ตั้งค่า env ของ Supabase");
     injectCss();
     const box = el("div", "lb");
     const head = el("div", "lb-head");

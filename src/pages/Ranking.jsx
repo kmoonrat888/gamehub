@@ -75,7 +75,7 @@ export default function Ranking() {
         </div>
 
         {status === "loading" && <p className="rank-note">กำลังโหลดอันดับ...</p>}
-        {status === "setup" && <p className="rank-note">ยังไม่ได้เชื่อมต่อระบบอันดับ (ตั้งค่าใน public/games/supabase-config.js)</p>}
+        {status === "setup" && <p className="rank-note">ยังไม่ได้เชื่อมต่อระบบอันดับ (ตั้งค่า VITE_SUPABASE_URL และ VITE_SUPABASE_PUBLISHABLE_KEY)</p>}
         {status === "error" && (
           <p className="rank-note">
             โหลดอันดับไม่ได้ (ไม่มีอินเทอร์เน็ต?){" "}
