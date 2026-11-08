@@ -1887,13 +1887,14 @@
   }
 
   // อันดับออนไลน์: แต่ละหมวดเป็นเกมแยกในเว็บรวมเกม · แยกตารางตามรูปแบบคำถาม + จำนวนข้อ
-  const GAME_IDS = { animals: "animal-words", colors: "english-colors", body: "english-body", verbs: "english-verbs", home: "english-home" };
+  const GAME_IDS = { animals: "animal-words", colors: "english-colors", body: "english-body", verbs: "english-verbs", home: "english-home", time: "english-time" };
   function showLeaderboard() {
     if (!window.Leaderboard) return;
     const { cat, qtype, count } = state.settings;
     const total = state.questions.length;
     const elapsed = Date.now() - state.startedAt;
-    const qtypeName = SETTINGS[1].options.find((o) => o.value === qtype).label.split(" ").slice(1).join(" ");
+    const qtypeLabel = (category().qtypeLabels || {})[qtype]?.[0] || SETTINGS[1].options.find((o) => o.value === qtype).label; // หมวดวัน-เดือนใช้ชื่อรูปแบบคำถามของตัวเอง
+    const qtypeName = qtypeLabel.split(" ").slice(1).join(" ");
     Leaderboard.show($("leaderboard"), {
       game: GAME_IDS[cat],
       board: `${qtypeName} · ${count === 0 ? `ทั้งหมด ${total}` : total} ข้อ`,
