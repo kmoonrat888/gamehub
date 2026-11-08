@@ -216,6 +216,7 @@
     <div class="stars" id="stars"></div>
     <div class="result-score" id="result-score"></div>
     <p class="result-msg" id="result-msg"></p>
+    <div id="leaderboard"></div>
     <div class="review" id="review"></div>
     <div class="result-actions">
       <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
@@ -223,6 +224,8 @@
     </div>
   </section>
 
+<script src="supabase-config.js"></script>
+<script src="leaderboard.js"></script>
 <script>
   // ======================================================================
   //  ตัวอักษร A–Z: เสียงอ่าน (phonics) และพยัญชนะไทยที่เทียบได้
@@ -498,6 +501,7 @@
     state.score = 0;
     state.missed = [];
     state.round++;
+    state.startedAt = Date.now();
     $("score").textContent = "0";
     showScreen("game");
     renderQuestion();
@@ -615,6 +619,18 @@
     };
     $("result-mascot").textContent = messages[stars][0];
     $("result-msg").textContent = messages[stars][1];
+
+    // อันดับออนไลน์ แยกตารางตามรูปแบบคำถาม + จำนวนข้อ
+    if (window.Leaderboard) {
+      const elapsed = Date.now() - state.startedAt;
+      Leaderboard.show($("leaderboard"), {
+        game: "phonics-az",
+        board: `${QTYPES[state.settings.qtype].label.split(" ").slice(1).join(" ")} · ${total} ข้อ`,
+        score: state.score,
+        timeMs: elapsed,
+        detail: `ถูก ${state.score}/${total} · ${Leaderboard.fmtTime(elapsed)}`,
+      });
+    }
 
     const box = $("review");
     box.innerHTML = "";

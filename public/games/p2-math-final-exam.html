@@ -578,6 +578,7 @@
       <div class="level" id="r-level"></div>
       <div class="meta" id="r-meta"></div>
     </div>
+    <div class="no-print" id="leaderboard"></div>
 
     <h2 class="section-title">📊 คะแนนแยกตามตัวชี้วัด</h2>
     <div class="topics" id="r-topics"></div>
@@ -608,6 +609,8 @@
     </div>
   </div>
 
+<script src="supabase-config.js"></script>
+<script src="leaderboard.js"></script>
 <script>
   // ---------- ข้อสอบ (ตามต้นฉบับ PDF) ----------
   // แต่ละข้อ: [โจทย์, [ก, ข, ค], คำตอบ, รูปประกอบ (ถ้ามี)]
@@ -1151,6 +1154,19 @@
     $("r-meta").textContent =
       `${exam.mode === "practice" ? "โหมดฝึกทำ" : "โหมดสอบจริง"} · ส่งเมื่อ ${when} · ใช้เวลา ${formatDuration(exam.submittedAt - exam.startedAt)}` +
       (exam.timeUp ? " · หมดเวลา" : "");
+
+    // อันดับออนไลน์ แยกตารางโหมดสอบจริง / ฝึกทำ · session กันบันทึกซ้ำเมื่อเปิดผลสอบเดิม
+    if (window.Leaderboard) {
+      const used = exam.submittedAt - exam.startedAt;
+      Leaderboard.show($("leaderboard"), {
+        game: "p2-final-exam",
+        board: exam.mode === "practice" ? "โหมดฝึกทำ" : "โหมดสอบจริง",
+        score,
+        timeMs: used,
+        detail: `${score}/${total} คะแนน · ${Leaderboard.fmtTime(used)}`,
+        session: `p2-exam-${exam.startedAt}`, // ไม่ดึงชื่อ-นามสกุลจริงมาใส่ ตารางอันดับเป็นสาธารณะ ให้เด็กพิมพ์ชื่อเล่นเอง
+      });
+    }
 
     renderTopics();
     renderReview();

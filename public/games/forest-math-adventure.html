@@ -681,6 +681,7 @@
         <div><b id="v-bites"></b>โดนกัด</div>
         <div><b id="v-time"></b>เวลา</div>
       </div>
+      <div id="leaderboard"></div>
       <div class="actions">
         <button class="btn btn-blue" id="more-fw-btn">🎆 จุดพลุอีก</button>
         <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
@@ -689,6 +690,8 @@
     </div>
   </div>
 
+<script src="supabase-config.js"></script>
+<script src="leaderboard.js"></script>
 <script>
   // ---------- ค่าคงที่ของโลกในเกม (หน่วย = ความกว้างฉาก 1 จอ) ----------
   const WORLD_UNITS = 14;
@@ -1486,6 +1489,18 @@
     $("v-correct").textContent = `${state.correct} ข้อ`;
     $("v-bites").textContent = `${state.bites} ครั้ง`;
     $("v-time").textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+    // อันดับออนไลน์: เริ่ม 100 คะแนน โดนกัดหักครั้งละ 5 · คะแนนเท่ากันใครเร็วกว่าชนะ
+    if (window.Leaderboard) {
+      const points = Math.max(0, 100 - state.bites * 5);
+      Leaderboard.show($("leaderboard"), {
+        game: "forest-adventure",
+        board: "ผ่านป่า 10 ด่าน",
+        score: points,
+        timeMs: seconds * 1000,
+        detail: `${points} คะแนน · ${Leaderboard.fmtTime(seconds * 1000)}`,
+        name: state.name,
+      });
+    }
     const chest = $("chest");
     chest.textContent = "🎁";
     chest.className = "chest closed";

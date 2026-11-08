@@ -411,6 +411,86 @@ a { color: inherit; }
   display: block;
 }
 
+/* ---------- อันดับคะแนน ---------- */
+.rank-link {
+  background: linear-gradient(180deg, #ffd25e, #ffb020);
+  color: #5a3a00;
+  font-size: 17px;
+  padding: 9px 14px;
+}
+.ranking-hero h1 { font-size: clamp(26px, 6vw, 36px); }
+.rank-games {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.rank-game {
+  font: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--card);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(51, 41, 90, 0.1);
+}
+.rank-game.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, #fff); }
+.rank-card {
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  border-top: 8px solid var(--accent);
+  padding: 18px 18px 22px;
+}
+.rank-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.rank-head h2 { font-size: clamp(20px, 5vw, 26px); }
+.rank-head .play-btn { padding: 10px 18px; font-size: 17px; }
+.rank-note { color: var(--muted); font-weight: 600; text-align: center; padding: 24px 8px; }
+.rank-retry { background: var(--primary); padding: 6px 14px; margin-left: 6px; font-size: 15px; }
+.rank-boards { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.rank-board {
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--soft);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.rank-board small { color: var(--muted); font-weight: 600; }
+.rank-board.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.rank-board.active small { color: rgba(255, 255, 255, 0.85); }
+.rank-board-name { color: var(--muted); font-weight: 700; margin-bottom: 10px; }
+.rank-list { list-style: none; display: grid; gap: 6px; max-width: 640px; margin: 0 auto; }
+.rank-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--soft);
+  font-weight: 600;
+}
+.rank-row.top { background: #fff5d6; }
+.rank-no { text-align: center; font-weight: 800; color: var(--muted); font-size: 18px; }
+.rank-row.top .rank-no { font-size: 28px; }
+.rank-name { font-weight: 800; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-detail { white-space: nowrap; }
+.rank-date { color: var(--muted); font-size: 13px; white-space: nowrap; }
+
 /* ---------- ไม่พบหน้า ---------- */
 .not-found {
   text-align: center;
@@ -441,4 +521,12 @@ a { color: inherit; }
   .cat-desc { font-size: 13px; }
   .popup-inner { padding: 14px 12px 18px; }
   .popup-head { top: -14px; margin: -14px -12px 14px; padding: 12px; }
+  .rank-games { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px 12px; padding: 4px 16px 8px; scrollbar-width: none; }
+  .rank-games::-webkit-scrollbar { display: none; }
+  .rank-game { flex-shrink: 0; }
+  .rank-card { padding: 14px 10px 18px; }
+  .rank-row { grid-template-columns: 36px 1fr auto; gap: 8px; padding: 8px 10px; }
+  .rank-date { display: none; }
+  .rank-name { font-size: 16px; }
+  .rank-detail { font-size: 14px; }
 }

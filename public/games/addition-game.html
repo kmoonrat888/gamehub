@@ -711,6 +711,7 @@
     <div class="result-score" id="result-score"></div>
     <p class="result-msg" id="result-msg"></p>
     <p class="best" id="best"></p>
+    <div id="leaderboard"></div>
     <div class="result-actions">
       <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
       <button class="btn btn-secondary" id="level-btn">🎚️ เปลี่ยนโหมด / ระดับ</button>
@@ -758,6 +759,8 @@
     </div>
   </div>
 
+<script src="supabase-config.js"></script>
+<script src="leaderboard.js"></script>
 <script>
   const TOTAL_QUESTIONS = 10;
   const TIME_LIMIT = 60; // วินาที (โหมดจับเวลา)
@@ -1074,10 +1077,26 @@
     $("result-mascot").textContent = messages[stars][0];
     $("result-msg").textContent = messages[stars][1];
     $("best").textContent = timed ? updateBest(score) : "";
+    showLeaderboard(score);
 
     showScreen("result");
     sounds.finish();
     launchConfetti(stars * 40);
+  }
+
+  // อันดับออนไลน์ แยกตารางตามโหมดเลข + ระดับ + รูปแบบการเล่น
+  function showLeaderboard(score) {
+    if (!window.Leaderboard) return;
+    const timed = state.mode === "timed";
+    const elapsed = Date.now() - state.startedAt;
+    const modeName = { normal: "ปกติ", timed: "จับเวลารวม", perq: `จับเวลาข้อละ ${state.perQuestionTime} วิ` }[state.mode];
+    Leaderboard.show($("leaderboard"), {
+      game: "math-fun",
+      board: `${OPERATIONS[state.op].name} · ${LEVEL_LABELS[state.level].split(" ").slice(1).join(" ")} · ${modeName}`,
+      score,
+      timeMs: timed ? null : elapsed,
+      detail: timed ? `ถูก ${score} ข้อ` : `ถูก ${score}/${TOTAL_QUESTIONS} · ${Leaderboard.fmtTime(elapsed)}`,
+    });
   }
 
   // สถิติสูงสุดของโหมดจับเวลา แยกตามโหมดและระดับ (เก็บในเบราว์เซอร์เครื่องนี้)
@@ -1167,6 +1186,7 @@
     state.round++;
     state.current = 0;
     state.score = 0;
+    state.startedAt = Date.now();
     $("score").textContent = "0";
     stopTimer();
     resetTimerDisplay();

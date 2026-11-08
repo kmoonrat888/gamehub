@@ -34,6 +34,9 @@ export default function Play() {
         <h1>
           <span aria-hidden="true">{game.emoji}</span> {game.title}
         </h1>
+        <Link to={`/ranking/${game.id}`} className="btn bar-btn" title="อันดับคะแนนสูงสุด">
+          🏆 <span className="hide-sm">อันดับ</span>
+        </Link>
         <button type="button" className="btn bar-btn" onClick={goFullscreen} title="เต็มจอ">
           ⛶ <span className="hide-sm">เต็มจอ</span>
         </button>

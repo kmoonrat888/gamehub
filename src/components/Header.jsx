@@ -7,6 +7,9 @@ export default function Header() {
         <span className="logo-icon" aria-hidden="true">🎮</span>
         <span>บ้านเกมเรียนรู้</span>
       </Link>
+      <Link to="/ranking" className="btn rank-link">
+        🏆 <span>อันดับ</span>
+      </Link>
     </header>
   );
 }

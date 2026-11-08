@@ -812,12 +812,15 @@
       <div><b id="f-math"></b>ตอบคณิตผิด</div>
       <div><b id="f-hint"></b>ใช้คำใบ้</div>
     </div>
+    <div id="leaderboard"></div>
     <div class="actions">
       <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
       <button class="btn btn-soft" id="menu-btn">🏠 กลับหน้าแรก</button>
     </div>
   </section>
 
+<script src="supabase-config.js"></script>
+<script src="leaderboard.js"></script>
 <script>
   // ======================================================================
   //  ตัวช่วยวาดภาพ (SVG ขนาด 400 × 300)
@@ -2171,9 +2174,22 @@
     $("f-time").textContent = fmt(me.finishedAt - race.start);
     $("f-time").nextSibling.textContent = "เวลาที่ใช้วิ่ง";
     fillStats();
+    // อันดับออนไลน์: แข่งกันที่เวลาวิ่งเข้าเส้นชัย (เร็วกว่าชนะ)
+    const runMs = me.finishedAt - race.start;
+    showLeaderboard("แข่งวิ่ง", 0, runMs, `⏱️ ${fmt(runMs)} · ที่ ${place}`);
     showScreen("final-screen");
     sounds.win();
     confetti(place === 1 ? 160 : 90);
+  }
+
+  function showLeaderboard(modeName, score, timeMs, detail) {
+    if (!window.Leaderboard) return;
+    Leaderboard.show($("leaderboard"), {
+      game: "spot-difference",
+      board: `${modeName} · คณิต${["ง่าย", "ปานกลาง", "ยาก"][state.difficulty]}`,
+      score, timeMs, detail,
+      name: state.playerName,
+    });
   }
 
   function fillStats() {
@@ -2194,6 +2210,9 @@
     $("f-time").textContent = fmt(state.findTime);
     $("f-time").nextSibling.textContent = "เวลาที่ใช้หาจุดต่าง";
     fillStats();
+    // อันดับออนไลน์: เริ่ม 100 คะแนน หักแตะผิด/ตอบผิดครั้งละ 2 ใช้คำใบ้ครั้งละ 4 · คะแนนเท่ากันใครเร็วกว่าชนะ
+    const points = Math.max(0, 100 - penalty * 2);
+    showLeaderboard(`เล่นปกติ ${state.levels.length} ด่าน`, points, state.findTime, `${points} คะแนน · ${fmt(state.findTime)}`);
     showScreen("final-screen");
     sounds.win();
     confetti(140);

@@ -387,6 +387,7 @@
     <div class="stars" id="stars"></div>
     <div class="result-score" id="result-score"></div>
     <p class="result-msg" id="result-msg"></p>
+    <div id="leaderboard"></div>
     <div class="review" id="review"></div>
     <div class="result-actions">
       <button class="btn btn-primary" id="again-btn">🔁 เล่นอีกครั้ง</button>
@@ -394,6 +395,8 @@
     </div>
   </section>
 
+<script src="supabase-config.js"></script>
+<script src="leaderboard.js"></script>
 <script>
   // ======================================================================
   //  ภาพหมวดสี: หยดสี (Gold/Silver ใช้ไล่เฉดแบบโลหะ)
@@ -1668,6 +1671,7 @@
     state.score = 0;
     state.missed = [];
     state.round++;
+    state.startedAt = Date.now();
     $("score").textContent = "0";
     showScreen("game");
     renderQuestion();
@@ -1875,10 +1879,28 @@
     };
     $("result-mascot").textContent = messages[stars][0];
     $("result-msg").textContent = messages[stars][1];
+    showLeaderboard();
     renderReview();
     showScreen("result");
     sounds.finish();
     launchConfetti(stars * 40);
+  }
+
+  // อันดับออนไลน์: แต่ละหมวดเป็นเกมแยกในเว็บรวมเกม · แยกตารางตามรูปแบบคำถาม + จำนวนข้อ
+  const GAME_IDS = { animals: "animal-words", colors: "english-colors", body: "english-body", verbs: "english-verbs", home: "english-home" };
+  function showLeaderboard() {
+    if (!window.Leaderboard) return;
+    const { cat, qtype, count } = state.settings;
+    const total = state.questions.length;
+    const elapsed = Date.now() - state.startedAt;
+    const qtypeName = SETTINGS[1].options.find((o) => o.value === qtype).label.split(" ").slice(1).join(" ");
+    Leaderboard.show($("leaderboard"), {
+      game: GAME_IDS[cat],
+      board: `${qtypeName} · ${count === 0 ? `ทั้งหมด ${total}` : total} ข้อ`,
+      score: state.score,
+      timeMs: elapsed,
+      detail: `ถูก ${state.score}/${total} · ${Leaderboard.fmtTime(elapsed)}`,
+    });
   }
 
   function renderReview() {
