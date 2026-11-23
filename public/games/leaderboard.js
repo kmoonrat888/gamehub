@@ -1,7 +1,8 @@
 // ======================================================================
 //  ระบบอันดับคะแนนสูงสุด (Supabase) — ใช้ร่วมกันทุกเกม
-//  ใช้คู่กับ supabase-config.js (ไฟล์นี้ vite.config.js สร้างจาก env ตอน build):
+//  ใช้คู่กับ supabase-config.js (ไฟล์นี้ vite.config.js สร้างจาก env ตอน build) และ auth.js:
 //    <script src="supabase-config.js"></script>
+//    <script src="auth.js"></script>
 //    <script src="leaderboard.js"></script>
 //
 //  Leaderboard.show(กล่อง, {
@@ -11,8 +12,10 @@
 //    timeMs:  45000,               // เวลาที่ใช้ (น้อยกว่า = ดีกว่า ใช้ตัดสินเมื่อคะแนนเท่ากัน) ไม่มีใส่ null
 //    detail:  "ถูก 8/10 · 0:45",   // ข้อความที่แสดงในตาราง
 //    session: "...",               // (ไม่บังคับ) กันบันทึกซ้ำเมื่อเปิดหน้าผลเดิมอีกครั้ง
-//    name:    "...",               // (ไม่บังคับ) ชื่อตั้งต้น
+//    name:    "...",               // (ไม่บังคับ) ชื่อตั้งต้นสำหรับผู้เล่นที่ไม่ได้ Log in
 //  })
+//
+//  Log in อยู่ → บันทึกในบัญชีด้วยชื่อเล่นของบัญชี · ไม่ได้ Log in → พิมพ์ชื่อเล่นเอง
 // ======================================================================
 (function () {
   const TABLE = "scores";
@@ -20,22 +23,25 @@
   const NAME_KEY = "gamehub-nickname";
   const SAVED_KEY = "gamehub-saved-scores";
   const MEDALS = ["🥇", "🥈", "🥉"];
+  const LOGIN_URL = "../#/login?from=game";
+
+  const auth = () => window.GameHubAuth || null;
+  const currentUser = () => (auth() ? auth().getUser() : null);
 
   const config = () => {
     const c = window.SUPABASE_CONFIG || {};
     return c.url && c.publishableKey ? { url: c.url.replace(/\/+$/, ""), key: c.publishableKey } : null;
   };
 
-  function headers(cfg, extra) {
-    return Object.assign({ apikey: cfg.key }, extra);
-  }
+  const nameKey = (name) => String(name || "").trim().toLowerCase();
+  const playerKey = (r) => (r.user_id ? `u:${r.user_id}` : `n:${nameKey(r.player_name)}`);
 
-  // คนเดียวกันเล่นหลายรอบ แสดงเฉพาะคะแนนที่ดีที่สุดของชื่อนั้น
-  function bestPerName(rows, limit) {
+  // คนเดียวกันเล่นหลายรอบ แสดงเฉพาะคะแนนที่ดีที่สุดของคนนั้น (บัญชีเดียวกัน หรือชื่อเดียวกัน)
+  function bestPerPlayer(rows, limit) {
     const seen = new Set();
     const out = [];
     for (const r of rows) {
-      const k = r.player_name.trim().toLowerCase();
+      const k = playerKey(r);
       if (seen.has(k)) continue;
       seen.add(k);
       out.push(r);
@@ -48,28 +54,34 @@
     const cfg = config();
     if (!cfg) throw new Error("not-configured");
     const q = new URLSearchParams({
-      select: "id,player_name,score,time_ms,detail,created_at",
+      select: "id,player_name,score,time_ms,detail,created_at,user_id",
       game_id: `eq.${game}`,
       board: `eq.${board}`,
       order: "score.desc,time_ms.asc.nullslast,created_at.asc",
       limit: "200",
     });
-    const res = await fetch(`${cfg.url}/rest/v1/${TABLE}?${q}`, { headers: headers(cfg) });
+    const res = await fetch(`${cfg.url}/rest/v1/${TABLE}?${q}`, { headers: { apikey: cfg.key } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return bestPerName(await res.json(), limit);
+    return bestPerPlayer(await res.json(), limit);
   }
 
+  // บันทึกคะแนน (Log in อยู่ → ผูกกับบัญชีอัตโนมัติ)
   async function submit(entry) {
+    if (!config()) throw new Error("not-configured");
+    const opts = { method: "POST", body: entry, headers: { Prefer: "return=minimal" } };
+    if (auth()) return auth().rest(TABLE, opts);
     const cfg = config();
-    if (!cfg) throw new Error("not-configured");
     const res = await fetch(`${cfg.url}/rest/v1/${TABLE}`, {
       method: "POST",
-      headers: headers(cfg, { "Content-Type": "application/json", Prefer: "return=representation" }),
+      headers: { apikey: cfg.key, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify(entry),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
-    return rows[0];
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      const err = new Error(`HTTP ${res.status}`);
+      err.code = d.message === "name_taken" ? "name_taken" : "";
+      throw err;
+    }
   }
 
   // ---------- จำชื่อเล่น / รอบที่บันทึกแล้ว ----------
@@ -103,9 +115,14 @@
     padding: 10px 14px; cursor: pointer; background: linear-gradient(180deg, #ffb347, #ff7a59); color: #fff;
     box-shadow: 0 3px 0 #d9573a; white-space: nowrap; }
   .lb-form button:disabled { opacity: .6; cursor: default; }
+  .lb-account { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 14px;
+    background: #eef9f2; border: 2px solid #b9e6c9; font-weight: 700; }
+  .lb-account span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lb-msg { min-height: 20px; font-size: 14px; color: #5a5a72; margin-bottom: 4px; }
   .lb-msg.good { color: #1f9a5c; font-weight: 700; }
   .lb-msg.bad { color: #d6334a; }
+  .lb-login { font-size: 14px; color: #5a5a72; margin: -2px 0 6px; }
+  .lb-login a { color: #3b6fe0; font-weight: 800; }
   .lb-list { list-style: none; margin: 0; padding: 0; }
   .lb-row { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px;
     padding: 7px 8px; border-radius: 12px; }
@@ -114,6 +131,7 @@
   .lb-no { text-align: center; font-weight: 800; color: #7a7a90; font-size: 15px; }
   .lb-no.medal { font-size: 22px; }
   .lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-check { color: #1f9a5c; font-size: 13px; margin-left: 4px; }
   .lb-detail { font-size: 14px; color: #4a4a62; text-align: right; white-space: nowrap; }
   .lb-empty { text-align: center; color: #7a7a90; padding: 10px 0 4px; font-size: 15px; }
   .lb-retry { display: block; margin: 6px auto 0; padding: 6px 14px; font-size: 14px; }
@@ -135,26 +153,34 @@
     return e;
   }
 
-  function renderRows(list, rows, myName) {
+  // แถวไหนเป็นของเรา: บัญชีเดียวกัน หรือ (ไม่ได้ Log in) ชื่อเดียวกัน
+  function isMine(r, me) {
+    if (me.userId) return r.user_id === me.userId;
+    return !!me.name && !r.user_id && nameKey(r.player_name) === nameKey(me.name);
+  }
+
+  function renderRows(list, rows, me) {
     list.innerHTML = "";
     if (!rows.length) {
       list.append(el("li", "lb-empty", "ยังไม่มีใครบันทึกคะแนน มาเป็นคนแรกกัน! 🌟"));
       return;
     }
-    const me = (myName || "").trim().toLowerCase();
     rows.forEach((r, i) => {
-      const li = el("li", "lb-row" + (me && r.player_name.trim().toLowerCase() === me ? " me" : ""));
-      li.append(
-        el("span", "lb-no" + (i < 3 ? " medal" : ""), i < 3 ? MEDALS[i] : String(i + 1)),
-        el("span", "lb-name", r.player_name),
-        el("span", "lb-detail", r.detail || String(r.score))
-      );
+      const li = el("li", "lb-row" + (isMine(r, me) ? " me" : ""));
+      const name = el("span", "lb-name", r.player_name);
+      if (r.user_id) {
+        const check = el("span", "lb-check", "✔");
+        check.title = "สมาชิก";
+        name.append(check);
+      }
+      li.append(el("span", "lb-no" + (i < 3 ? " medal" : ""), i < 3 ? MEDALS[i] : String(i + 1)), name, el("span", "lb-detail", r.detail || String(r.score)));
       list.append(li);
     });
   }
 
   function show(container, opts) {
     if (!container) return;
+    if (container._lbOff) container._lbOff();
     container.innerHTML = "";
     // ยังไม่ได้ตั้งค่า Supabase: ไม่แสดงอะไรในเกม (เด็กไม่ต้องเห็นข้อความเทคนิค)
     if (!config()) return console.info("Leaderboard: ยังไม่ได้ตั้งค่า env ของ Supabase");
@@ -167,73 +193,138 @@
     container.append(box);
 
     const session = opts.session || `${opts.game}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const formArea = el("div");
     const msg = el("div", "lb-msg");
     const list = el("ol", "lb-list");
-    let myName = (opts.name || store.get(NAME_KEY, "") || "").slice(0, 20);
+    box.append(formArea, msg, list);
 
-    const canSave = opts.score > 0 || opts.timeMs != null;
-    if (canSave && !savedSessions().includes(session)) {
-      const form = el("form", "lb-form");
-      const input = el("input");
-      input.maxLength = 20;
-      input.placeholder = "พิมพ์ชื่อเล่น";
-      input.value = myName;
-      input.setAttribute("aria-label", "ชื่อเล่น");
-      const btn = el("button", "", "💾 บันทึก");
-      btn.type = "submit";
-      form.append(input, btn);
-      box.append(form);
-      msg.textContent = "พิมพ์ชื่อเล่นแล้วกดบันทึก เพื่อขึ้นตารางอันดับ";
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const name = input.value.replace(/\s+/g, " ").trim().slice(0, 20);
-        if (!name) {
-          msg.className = "lb-msg bad";
-          msg.textContent = "พิมพ์ชื่อเล่นก่อนนะ ✏️";
-          input.focus();
+    const guestName = () => (opts.name || store.get(NAME_KEY, "") || "").slice(0, 20);
+    const me = () => {
+      const u = currentUser();
+      return u ? { userId: u.id, name: u.displayName } : { userId: null, name: guestName() };
+    };
+    let rows = [];
+    let saving = false;
+
+    const setMsg = (text, cls) => {
+      msg.className = "lb-msg" + (cls ? " " + cls : "");
+      msg.textContent = text;
+    };
+
+    async function save(name, controls) {
+      saving = true;
+      controls.forEach((c) => (c.disabled = true));
+      setMsg("กำลังบันทึก...");
+      const user = currentUser();
+      try {
+        await submit({
+          game_id: opts.game,
+          board: opts.board || "",
+          player_name: user ? user.displayName || name : name,
+          score: Math.max(0, Math.round(opts.score || 0)),
+          time_ms: opts.timeMs == null ? null : Math.max(0, Math.round(opts.timeMs)),
+          detail: (opts.detail || "").slice(0, 120),
+        });
+        markSaved(session);
+        if (!user) store.set(NAME_KEY, name);
+        saving = false;
+        formArea.innerHTML = "";
+        rows = await fetchTop(opts.game, opts.board || "");
+        const rank = rows.findIndex((r) => isMine(r, me()));
+        const shown = user ? user.displayName || name : name;
+        setMsg(rank >= 0 ? `บันทึกแล้ว! ${shown} อยู่อันดับที่ ${rank + 1} 🎉` : "บันทึกแล้ว! ยังไม่ติด 10 อันดับ ลองใหม่นะ 💪", "good");
+        renderRows(list, rows, me());
+      } catch (err) {
+        saving = false;
+        if (savedSessions().includes(session)) {
+          // บันทึกสำเร็จแล้ว แค่โหลดตารางใหม่ไม่ได้
+          formArea.innerHTML = "";
+          setMsg("บันทึกแล้ว ✅ (โหลดตารางไม่ได้ ลองใหม่ภายหลัง)", "good");
           return;
         }
-        btn.disabled = true;
-        input.disabled = true;
-        msg.className = "lb-msg";
-        msg.textContent = "กำลังบันทึก...";
-        try {
-          await submit({
-            game_id: opts.game,
-            board: opts.board || "",
-            player_name: name,
-            score: Math.max(0, Math.round(opts.score || 0)),
-            time_ms: opts.timeMs == null ? null : Math.max(0, Math.round(opts.timeMs)),
-            detail: (opts.detail || "").slice(0, 120),
-          });
-          markSaved(session);
-          store.set(NAME_KEY, name);
-          myName = name;
-          form.remove();
-          const rows = await fetchTop(opts.game, opts.board || "");
-          const rank = rows.findIndex((r) => r.player_name.trim().toLowerCase() === name.toLowerCase());
-          msg.className = "lb-msg good";
-          msg.textContent = rank >= 0 ? `บันทึกแล้ว! ${name} อยู่อันดับที่ ${rank + 1} 🎉` : "บันทึกแล้ว! ยังไม่ติด 10 อันดับ ลองใหม่นะ 💪";
-          renderRows(list, rows, myName);
-        } catch (err) {
-          btn.disabled = false;
-          input.disabled = false;
-          msg.className = "lb-msg bad";
-          msg.textContent = "บันทึกไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง";
-        }
-      });
-    } else if (!canSave) {
-      msg.textContent = "ทำคะแนนให้ได้อย่างน้อย 1 คะแนน เพื่อบันทึกอันดับ";
-    } else {
-      msg.textContent = "บันทึกคะแนนรอบนี้แล้ว ✅";
+        controls.forEach((c) => (c.disabled = false));
+        if (user && !currentUser()) setMsg("หมดเวลาการเข้าสู่ระบบ ลองเข้าสู่ระบบใหม่", "bad");
+        else if (err.code === "name_taken") setMsg(`ชื่อ "${name}" มีเจ้าของบัญชีแล้ว ลองชื่ออื่น หรือเข้าสู่ระบบ`, "bad");
+        else if (err.code === "session_expired" || err.status === 401) setMsg("หมดเวลาการเข้าสู่ระบบ ลองเข้าสู่ระบบใหม่", "bad");
+        else setMsg("บันทึกไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง", "bad");
+        renderForm(true);
+      }
     }
-    box.append(msg, list);
+
+    // ฟอร์มบันทึก: เปลี่ยนตามสถานะ Log in (เข้าสู่ระบบจากแท็บอื่นแล้วกล่องนี้เปลี่ยนเอง)
+    function renderForm(keepMsg) {
+      formArea.innerHTML = "";
+      const canSave = opts.score > 0 || opts.timeMs != null;
+      if (!canSave) return setMsg("ทำคะแนนให้ได้อย่างน้อย 1 คะแนน เพื่อบันทึกอันดับ");
+      if (savedSessions().includes(session)) return keepMsg || setMsg("บันทึกคะแนนรอบนี้แล้ว ✅");
+
+      const user = currentUser();
+      const form = el("form", "lb-form");
+      const btn = el("button", "", "💾 บันทึก");
+      btn.type = "submit";
+      if (user) {
+        const acc = el("div", "lb-account");
+        acc.append("👤", el("span", "", user.displayName || user.email));
+        form.append(acc, btn);
+        formArea.append(form);
+        if (!keepMsg) setMsg("บันทึกคะแนนนี้ไว้ในบัญชีของคุณ");
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          if (!saving) save(user.displayName || "", [btn]);
+        });
+      } else {
+        const input = el("input");
+        input.maxLength = 20;
+        input.placeholder = "พิมพ์ชื่อเล่น";
+        input.value = guestName();
+        input.setAttribute("aria-label", "ชื่อเล่น");
+        form.append(input, btn);
+        formArea.append(form);
+        if (auth() && auth().configured()) {
+          const login = el("div", "lb-login");
+          const a = el("a", "", "🔑 เข้าสู่ระบบ");
+          a.href = LOGIN_URL;
+          a.target = "_blank";
+          login.append("มีบัญชีแล้ว? ", a, " เพื่อเก็บคะแนนไว้ในบัญชี");
+          formArea.append(login);
+        }
+        if (!keepMsg) setMsg("พิมพ์ชื่อเล่นแล้วกดบันทึก เพื่อขึ้นตารางอันดับ");
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          if (saving) return;
+          const name = input.value.replace(/\s+/g, " ").trim().slice(0, 20);
+          if (!name) {
+            setMsg("พิมพ์ชื่อเล่นก่อนนะ ✏️", "bad");
+            input.focus();
+            return;
+          }
+          save(name, [btn, input]);
+        });
+      }
+    }
+
+    renderForm();
+
+    if (auth()) {
+      // ต่ออายุ token ก็แจ้งเปลี่ยน · วาดใหม่เฉพาะเมื่อเปลี่ยนคนหรือเปลี่ยนชื่อ
+      let shownAs = JSON.stringify(me());
+      container._lbOff = auth().onChange(() => {
+        const now = JSON.stringify(me());
+        if (now === shownAs) return;
+        shownAs = now;
+        if (!saving) renderForm();
+        renderRows(list, rows, me());
+      });
+    }
 
     const load = () => {
       list.innerHTML = "";
       list.append(el("li", "lb-empty", "กำลังโหลดอันดับ..."));
       fetchTop(opts.game, opts.board || "")
-        .then((rows) => renderRows(list, rows, myName))
+        .then((r) => {
+          rows = r;
+          renderRows(list, rows, me());
+        })
         .catch(() => {
           list.innerHTML = "";
           const li = el("li", "lb-empty", "โหลดอันดับไม่ได้ (ไม่มีอินเทอร์เน็ต?)");

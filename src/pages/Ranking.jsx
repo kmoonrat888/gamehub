@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header.jsx";
 import { GAMES, findGame } from "../data/games.js";
 import { NotConfiguredError, fetchGameBoards } from "../lib/leaderboard.js";
+import { useUser } from "../lib/auth.js";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 const dateText = (iso) => new Date(iso).toLocaleDateString("th-TH", { day: "numeric", month: "short" });
@@ -13,6 +14,7 @@ export default function Ranking() {
   const game = findGame(id) || GAMES[0];
   const [state, setState] = useState({ status: "loading", boards: [] });
   const [boardName, setBoardName] = useState(null);
+  const user = useUser();
 
   const navRef = useRef(null);
 
@@ -47,7 +49,7 @@ export default function Ranking() {
 
       <section className="hero ranking-hero">
         <h1>🏆 อันดับคะแนนสูงสุด</h1>
-        <p>เลือกเกมเพื่อดูว่าใครทำคะแนนได้มากที่สุด · เล่นจบแล้วพิมพ์ชื่อเล่นเพื่อขึ้นตาราง</p>
+        <p>เลือกเกมเพื่อดูว่าใครทำคะแนนได้มากที่สุด · เล่นจบแล้วบันทึกคะแนนเพื่อขึ้นตาราง · <span className="rank-member">✔</span> = สมาชิก</p>
       </section>
 
       <nav className="rank-games" aria-label="เลือกเกม" ref={navRef}>
@@ -107,9 +109,16 @@ export default function Ranking() {
             {boards.length === 1 && current.board && <p className="rank-board-name">{current.board}</p>}
             <ol className="rank-list">
               {current.rows.map((r, i) => (
-                <li key={r.id} className={`rank-row${i < 3 ? " top" : ""}`}>
+                <li key={r.id} className={`rank-row${i < 3 ? " top" : ""}${user && r.user_id === user.id ? " me" : ""}`}>
                   <span className="rank-no">{i < 3 ? MEDALS[i] : i + 1}</span>
-                  <span className="rank-name">{r.player_name}</span>
+                  <span className="rank-name">
+                    {r.player_name}
+                    {r.user_id && (
+                      <span className="rank-member" title="สมาชิก">
+                        ✔
+                      </span>
+                    )}
+                  </span>
                   <span className="rank-detail">{r.detail || r.score}</span>
                   <span className="rank-date">{dateText(r.created_at)}</span>
                 </li>

@@ -2,6 +2,8 @@ import { HashRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Play from "./pages/Play.jsx";
 import Ranking from "./pages/Ranking.jsx";
+import Login from "./pages/Login.jsx";
+import Account from "./pages/Account.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 // HashRouter (#/play/...) ใช้กับโฮสต์ static ได้ทุกเจ้า ไม่ต้องตั้งค่า rewrite ฝั่งเซิร์ฟเวอร์
@@ -14,6 +16,8 @@ export default function App() {
         <Route path="/play/:id" element={<Play />} />
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/ranking/:id" element={<Ranking />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/account" element={<Account />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </HashRouter>
