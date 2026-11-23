@@ -211,12 +211,17 @@
       msg.textContent = text;
     };
 
-    async function save(name, controls) {
+    // setAccountName: บัญชีที่ยังไม่มีชื่อเล่น → ตั้งชื่อเล่นให้บัญชีก่อน แล้วค่อยบันทึกคะแนน
+    async function save(name, controls, setAccountName) {
       saving = true;
       controls.forEach((c) => (c.disabled = true));
       setMsg("กำลังบันทึก...");
-      const user = currentUser();
+      let user = currentUser();
       try {
+        if (user && setAccountName) {
+          await auth().saveDisplayName(name);
+          user = currentUser() || user;
+        }
         await submit({
           game_id: opts.game,
           board: opts.board || "",
@@ -243,10 +248,13 @@
           return;
         }
         controls.forEach((c) => (c.disabled = false));
+        console.warn("Leaderboard: บันทึกไม่สำเร็จ", err);
         if (user && !currentUser()) setMsg("หมดเวลาการเข้าสู่ระบบ ลองเข้าสู่ระบบใหม่", "bad");
-        else if (err.code === "name_taken") setMsg(`ชื่อ "${name}" มีเจ้าของบัญชีแล้ว ลองชื่ออื่น หรือเข้าสู่ระบบ`, "bad");
+        else if (err.code === "name_taken")
+          setMsg(user ? `ชื่อเล่น "${name}" มีคนใช้แล้ว ลองชื่ออื่นนะ` : `ชื่อ "${name}" มีเจ้าของบัญชีแล้ว ลองชื่ออื่น หรือเข้าสู่ระบบ`, "bad");
         else if (err.code === "session_expired" || err.status === 401) setMsg("หมดเวลาการเข้าสู่ระบบ ลองเข้าสู่ระบบใหม่", "bad");
-        else setMsg("บันทึกไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง", "bad");
+        else if (err.code === "network" || err instanceof TypeError) setMsg("บันทึกไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง", "bad");
+        else setMsg(`บันทึกไม่สำเร็จ ลองอีกครั้ง (รหัส ${err.status || err.message || "?"})`, "bad");
         renderForm(true);
       }
     }
@@ -262,15 +270,35 @@
       const form = el("form", "lb-form");
       const btn = el("button", "", "💾 บันทึก");
       btn.type = "submit";
-      if (user) {
+      if (user && !user.displayName) {
+        // บัญชีที่ยังไม่มีชื่อเล่น (เช่น สร้างก่อนติดตั้งระบบบัญชี) → ตั้งชื่อเล่นตรงนี้เลย
+        const input = el("input");
+        input.maxLength = 20;
+        input.placeholder = "ตั้งชื่อเล่น";
+        input.setAttribute("aria-label", "ตั้งชื่อเล่นให้บัญชี");
+        form.append(input, btn);
+        formArea.append(form);
+        if (!keepMsg) setMsg("บัญชีนี้ยังไม่มีชื่อเล่น ตั้งชื่อเล่นก่อนบันทึก (ใช้ชื่อเล่น ไม่ใช่ชื่อจริง)");
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          if (saving) return;
+          const name = input.value.replace(/\s+/g, " ").trim().slice(0, 20);
+          if (!name) {
+            setMsg("ตั้งชื่อเล่นก่อนนะ ✏️", "bad");
+            input.focus();
+            return;
+          }
+          save(name, [btn, input], true);
+        });
+      } else if (user) {
         const acc = el("div", "lb-account");
-        acc.append("👤", el("span", "", user.displayName || user.email));
+        acc.append("👤", el("span", "", user.displayName));
         form.append(acc, btn);
         formArea.append(form);
         if (!keepMsg) setMsg("บันทึกคะแนนนี้ไว้ในบัญชีของคุณ");
         form.addEventListener("submit", (e) => {
           e.preventDefault();
-          if (!saving) save(user.displayName || "", [btn]);
+          if (!saving) save(user.displayName, [btn]);
         });
       } else {
         const input = el("input");
@@ -304,6 +332,8 @@
     }
 
     renderForm();
+    const u0 = currentUser();
+    if (u0 && !u0.displayName) auth().refreshProfile().catch(() => {});
 
     if (auth()) {
       // ต่ออายุ token ก็แจ้งเปลี่ยน · วาดใหม่เฉพาะเมื่อเปลี่ยนคนหรือเปลี่ยนชื่อ
