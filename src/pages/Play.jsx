@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { findGame } from "../data/games.js";
 import { useRecentGames } from "../hooks/useRecentGames.js";
+import { auth, useUser } from "../lib/auth.js";
 import NotFound from "./NotFound.jsx";
 
 export default function Play() {
@@ -9,14 +10,18 @@ export default function Play() {
   const game = findGame(id);
   const stageRef = useRef(null);
   const { addRecent } = useRecentGames();
+  const user = useUser();
+  // ต้องเข้าสู่ระบบก่อนเล่น (ยังไม่ได้ตั้งค่า Supabase = เล่นได้เลย เพราะไม่มีทางเข้าสู่ระบบ)
+  const needLogin = auth.configured() && !user;
 
   useEffect(() => {
-    if (!game) return;
+    if (!game || needLogin) return;
     document.title = `${game.title} · บ้านเกมเรียนรู้`;
     addRecent(game.id);
-  }, [game, addRecent]);
+  }, [game, needLogin, addRecent]);
 
   if (!game) return <NotFound />;
+  if (needLogin) return <Navigate to={`/login?next=${encodeURIComponent(`/play/${game.id}`)}`} replace />;
 
   const src = `${import.meta.env.BASE_URL}games/${game.file}`;
 

@@ -284,4 +284,17 @@
     cleanName,
     AuthError,
   };
+
+  // ---------- ต้องเข้าสู่ระบบก่อนเล่นเกม ----------
+  // เปิดไฟล์เกมตรง ๆ (แท็บใหม่) โดยยังไม่ Log in → ไปหน้าเข้าสู่ระบบ แล้วกลับมาที่เกมนี้
+  // (ถ้าเกมอยู่ใน iframe ของเว็บรวมเกม หน้า Play เป็นคนพาไปหน้าเข้าสู่ระบบเอง)
+  const isGamePage = /\/games\/[^/]+\.html$/.test(location.pathname);
+  if (isGamePage && window.top === window && config()) {
+    const goLogin = () => {
+      const back = "games/" + location.pathname.split("/").pop() + location.search;
+      location.replace("../#/login?back=" + encodeURIComponent(back));
+    };
+    if (!cachedUser) goLogin();
+    else onChange((user) => user || goLogin());
+  }
 })();

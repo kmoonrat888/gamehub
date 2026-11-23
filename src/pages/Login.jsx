@@ -7,10 +7,23 @@ import { auth, useUser } from "../lib/auth.js";
 // ระหว่างนี้สร้างบัญชีให้ได้ที่ Supabase → Authentication → Users → Add user
 const SIGNUP_ENABLED = false;
 
+// เปิดไฟล์เกมตรง ๆ แล้วถูกพามาเข้าสู่ระบบ: รับเฉพาะไฟล์เกมในเว็บนี้ (กันลิงก์พาไปเว็บอื่น)
+const gameBack = (value) => (/^games\/[\w-]+\.html(\?[\w=&%-]*)?$/.test(value || "") ? value : null);
+
+function BackToGame({ href }) {
+  useEffect(() => {
+    window.location.replace(href);
+  }, [href]);
+  return null;
+}
+
 export default function Login() {
   const user = useUser();
   const [params] = useSearchParams();
   const fromGame = params.get("from") === "game";
+  const back = gameBack(params.get("back"));
+  const next = params.get("next");
+  const toPlay = !!back || (next || "").startsWith("/play/");
   const [mode, setMode] = useState(SIGNUP_ENABLED && params.get("mode") === "signup" ? "signup" : "login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -38,6 +51,8 @@ export default function Login() {
       </div>
     );
   }
+
+  if (user && back) return <BackToGame href={back} />;
 
   // เปิดจากเกม: เข้าสู่ระบบแล้วให้กลับไปแท็บเกมเพื่อบันทึกคะแนน
   if (user && (fromGame || done === "signup")) {
@@ -69,8 +84,8 @@ export default function Login() {
       </div>
     );
   }
-  // เข้าสู่ระบบแล้ว: ไปหน้าที่ตั้งใจไว้ (หรือเปิดหน้านี้ตอน Log in อยู่แล้ว → หน้าบัญชี)
-  if (user) return <Navigate to={done === "login" ? params.get("next") || "/" : "/account"} replace />;
+  // เข้าสู่ระบบแล้ว: ไปหน้าที่ตั้งใจไว้ (เช่น เกมที่กดเล่น) · เปิดหน้านี้ตอน Log in อยู่แล้ว → หน้าบัญชี
+  if (user) return <Navigate to={next || (done === "login" ? "/" : "/account")} replace />;
 
   const switchMode = (next) => {
     setMode(next);
@@ -129,7 +144,9 @@ export default function Login() {
             ? "สมัครครั้งเดียว คะแนนทุกเกมจะเก็บไว้ในบัญชี และขึ้นตารางอันดับด้วยชื่อเล่นของคุณ"
             : fromGame
               ? "เข้าสู่ระบบแล้วกลับไปที่แท็บเกม เพื่อบันทึกคะแนนรอบนี้ไว้ในบัญชี"
-              : "เข้าสู่ระบบเพื่อเก็บคะแนนไว้ในบัญชีของคุณ"}
+              : toPlay
+                ? "เข้าสู่ระบบก่อนนะ แล้วไปเล่นเกมกันเลย 🎮"
+                : "เข้าสู่ระบบเพื่อเล่นเกม และเก็บคะแนนไว้ในบัญชีของคุณ"}
         </p>
 
         <form className="auth-form" onSubmit={submit}>
@@ -190,8 +207,8 @@ export default function Login() {
         )}
         <p className="auth-small">
           {SIGNUP_ENABLED
-            ? "👨‍👩‍👧 ผู้ปกครองหรือคุณครูสมัครให้เด็กได้ · ไม่ Log in ก็เล่นและพิมพ์ชื่อเล่นบันทึกคะแนนได้เหมือนเดิม"
-            : "ยังไม่เปิดรับสมัครสมาชิก · ไม่ Log in ก็เล่นและพิมพ์ชื่อเล่นบันทึกคะแนนได้เหมือนเดิม"}
+            ? "👨‍👩‍👧 ต้องเข้าสู่ระบบก่อนจึงจะเล่นเกมได้ · ผู้ปกครองหรือคุณครูสมัครให้เด็กได้"
+            : "👨‍👩‍👧 ต้องเข้าสู่ระบบก่อนจึงจะเล่นเกมได้ · ยังไม่มีบัญชี? ขอให้ผู้ปกครองหรือคุณครูสร้างให้"}
         </p>
       </section>
     </div>
